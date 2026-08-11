@@ -28,8 +28,8 @@ app.get('/', (req, res) => {
 
 // Targeted Financial Crime & Investigative Feeds
 const FEED_URLS = [
-  'https://www.finextra.com/rss/topic/crime',
-  'https://www.occ.gov/rss/news-releases.xml',
+  'https://www.finextra.com/rss/channel.aspx?channel=crime',
+  'https://www.occrp.org/en/feed',
   'https://www.icij.org/feed/',
   'https://gijn.org/feed/'
 ];
