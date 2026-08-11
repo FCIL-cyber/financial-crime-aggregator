@@ -107,7 +107,7 @@
 
       try {
         // Connects to your local Node.js backend running on port 3000
-        const response = await fetch('http://localhost:3000/api/news');
+        const response = await fetch('https://financial-crime-intelligence-aggregator.onrender.com/api/news');
         const articles = await response.json();
 
         if (!articles || articles.length === 0) {
