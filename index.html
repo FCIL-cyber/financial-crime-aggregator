@@ -6,162 +6,280 @@
   <title>Financial Crime & Regulatory Intelligence</title>
   <style>
     :root {
-      --bg-color: #f8f9fa;
-      --card-bg: #ffffff;
-      --text-main: #111827;
-      --text-muted: #6b7280;
-      --accent: #d97706;
-      --border: #e5e7eb;
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-color: #38bdf8;
+      --accent-hover: #0284c7;
+      --border-color: #334155;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
-      padding: 40px 20px;
+      padding: 2rem 1rem;
+      min-height: 100vh;
     }
 
-    .header {
+    header {
       max-width: 1200px;
-      margin: 0 auto 40px;
-      border-bottom: 2px solid var(--text-main);
-      padding-bottom: 20px;
+      margin: 0 auto 2.5rem auto;
+      text-align: center;
     }
 
-    .header h1 {
-      font-size: 2.2rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
+    header h1 {
+      font-size: 2.25rem;
+      letter-spacing: -0.025em;
+      margin-bottom: 0.5rem;
+      color: var(--text-main);
     }
 
-    .header p {
+    header p {
       color: var(--text-muted);
-      margin-top: 6px;
       font-size: 1rem;
     }
 
-    .news-grid {
+    .grid-container {
       max-width: 1200px;
       margin: 0 auto;
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
+      gap: 1.5rem;
     }
 
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+    .news-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
-      text-decoration: none;
-      color: inherit;
     }
 
-    .card:hover {
+    .news-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
     }
 
-    .card-img-wrapper {
+    .card-image {
       width: 100%;
-      height: 200px;
-      overflow: hidden;
-      background-color: #e2e8f0;
-    }
-
-    .card-img {
-      width: 100%;
-      height: 100%;
+      height: 180px;
       object-fit: cover;
-      display: block;
+      background-color: #0f172a;
     }
 
-    .card-content {
-      padding: 20px;
+    .card-body {
+      padding: 1.25rem;
       display: flex;
       flex-direction: column;
       flex-grow: 1;
     }
 
-    .source-tag {
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
       font-size: 0.75rem;
-      font-weight: 800;
-      color: var(--accent);
-      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .source-tag {
+      background-color: rgba(56, 189, 248, 0.1);
+      color: var(--accent-color);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
       letter-spacing: 0.05em;
-      margin-bottom: 8px;
+    }
+
+    .card-date {
+      color: var(--text-muted);
     }
 
     .card-title {
       font-size: 1.1rem;
-      font-weight: 700;
       line-height: 1.4;
-      margin-bottom: 16px;
+      margin-bottom: 1rem;
+      flex-grow: 1;
+    }
+
+    .card-title a {
       color: var(--text-main);
+      text-decoration: none;
+      transition: color 0.15s ease;
     }
 
-    .card-date {
-      margin-top: auto;
-      font-size: 0.8rem;
+    .card-title a:hover {
+      color: var(--accent-color);
+    }
+
+    .pagination-container {
+      max-width: 1200px;
+      margin: 3rem auto 1rem auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .pagination-btn {
+      background-color: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 1.25rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background-color: var(--accent-color);
+      color: #0f172a;
+      border-color: var(--accent-color);
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .page-indicator {
       color: var(--text-muted);
+      font-size: 0.9rem;
     }
 
-    .loading {
+    .status-msg {
       grid-column: 1 / -1;
       text-align: center;
-      padding: 60px 0;
+      padding: 4rem 0;
       color: var(--text-muted);
       font-size: 1.1rem;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 1rem 0.5rem;
+      }
+      header h1 {
+        font-size: 1.75rem;
+      }
     }
   </style>
 </head>
 <body>
 
-  <header class="header">
+  <header>
     <h1>Financial Crime & Regulatory Intelligence</h1>
     <p>Real-time enforcement actions, compliance alerts, and policy updates</p>
   </header>
 
-  <main id="news-grid" class="news-grid">
-    <div class="loading">Loading news feed...</div>
+  <main>
+    <div id="news-container" class="grid-container">
+      <div class="status-msg">Loading latest intelligence...</div>
+    </div>
+
+    <div class="pagination-container">
+      <button id="prev-btn" class="pagination-btn" onclick="changePage(-1)" disabled>Previous</button>
+      <span id="page-indicator" class="page-indicator">Page 1</span>
+      <button id="next-btn" class="pagination-btn" onclick="changePage(1)" disabled>Next</button>
+    </div>
   </main>
 
   <script>
     const API_URL = 'https://financial-crime-intelligence-aggregator.onrender.com/api/news';
+    let currentPage = 1;
+    let totalPages = 1;
 
-    async function fetchNews() {
-      const container = document.getElementById('news-grid');
+    async function fetchNews(page = 1) {
+      const container = document.getElementById('news-container') || document.querySelector('.grid-container');
+      
+      if (!container) return;
+
+      container.innerHTML = '<div class="status-msg">Loading latest intelligence...</div>';
+
       try {
-        const res = await fetch(API_URL);
-        const articles = await res.json();
+        const response = await fetch(`${API_URL}?page=${page}&limit=12`);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
 
-        if (!articles.length) {
-          container.innerHTML = '<div class="loading">No articles found.</div>';
+        const data = await response.json();
+        
+        // Supports both array responses and object responses ({ articles: [...] })
+        const articles = Array.isArray(data) ? data : (data.articles || []);
+        
+        currentPage = data.currentPage || 1;
+        totalPages = data.totalPages || 1;
+
+        if (articles.length === 0) {
+          container.innerHTML = '<div class="status-msg">No articles found in the last 14 days.</div>';
+          updatePaginationUI();
           return;
         }
 
-        container.innerHTML = articles.map(item => `
-          <a href="${item.link}" target="_blank" class="card">
-            <div class="card-img-wrapper">
-              <img src="${item.image}" alt="Article thumbnail" class="card-img" onerror="this.src='https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80'">
-            </div>
-            <div class="card-content">
-              <span class="source-tag">${item.source}</span>
-              <h2 class="card-title">${item.title}</h2>
-              <span class="card-date">${item.date}</span>
-            </div>
-          </a>
-        `).join('');
-      } catch (err) {
-        container.innerHTML = '<div class="loading">Failed to load news. Ensure server is running.</div>';
+        container.innerHTML = '';
+
+        articles.forEach(article => {
+          const card = `
+            <article class="news-card">
+              <img class="card-image" 
+                   src="${article.image}" 
+                   alt="${article.title}" 
+                   loading="lazy" 
+                   onerror="this.src='https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80'">
+              <div class="card-body">
+                <div class="card-meta">
+                  <span class="source-tag">${article.source || 'INTELLIGENCE'}</span>
+                  <span class="card-date">${article.date || 'Recent'}</span>
+                </div>
+                <h2 class="card-title">
+                  <a href="${article.link}" target="_blank" rel="noopener noreferrer">${article.title}</a>
+                </h2>
+              </div>
+            </article>
+          `;
+          container.insertAdjacentHTML('beforeend', card);
+        });
+
+        updatePaginationUI();
+
+      } catch (error) {
+        console.error('Error fetching news:', error);
+        container.innerHTML = `<div class="status-msg">Failed to load news: ${error.message}</div>`;
       }
     }
 
-    fetchNews();
+    function updatePaginationUI() {
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+      const indicator = document.getElementById('page-indicator');
+
+      if (indicator) indicator.innerText = `Page ${currentPage} of ${totalPages}`;
+      if (prevBtn) prevBtn.disabled = (currentPage <= 1);
+      if (nextBtn) nextBtn.disabled = (currentPage >= totalPages);
+    }
+
+    function changePage(direction) {
+      const targetPage = currentPage + direction;
+      if (targetPage >= 1 && targetPage <= totalPages) {
+        fetchNews(targetPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => fetchNews(1));
   </script>
 </body>
 </html>
