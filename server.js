@@ -21,12 +21,12 @@ const parser = new Parser({
 const PORT = process.env.PORT || 3000;
 app.use(cors());
 
-// Health check route for keep-alive pings
-app.get('/', (req, res) => {
-  res.send('FCIL Aggregator API is running smoothly.');
-});
+// Global Memory Cache variables
+let articleCache = [];
+let lastFetchTime = 0;
+const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
 
-// Targeted Financial Crime & Investigative Feeds
+// Target Financial Crime & Investigative Reporting Feeds
 const FEED_URLS = [
   'https://www.finextra.com/rss/channel.aspx?channel=crime',
   'https://www.occrp.org/en/feed',
@@ -34,7 +34,7 @@ const FEED_URLS = [
   'https://gijn.org/feed/'
 ];
 
-// Fallback images only used if NO image exists in XML/HTML
+// Fallback high-res stock images
 const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80',
   'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80',
@@ -42,14 +42,17 @@ const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80'
 ];
 
+// Health check route for keep-alive pings
+app.get('/', (req, res) => {
+  res.send('FCIL Aggregator API is running smoothly.');
+});
+
 // Thorough XML & HTML Image Extraction
 function getFeedImage(item, index) {
-  // 1. Direct XML Media Enclosures
   if (item.mediaContent && item.mediaContent.$ && item.mediaContent.$.url) return item.mediaContent.$.url;
   if (item.mediaThumbnail && item.mediaThumbnail.$ && item.mediaThumbnail.$.url) return item.mediaThumbnail.$.url;
   if (item.enclosure && item.enclosure.url) return item.enclosure.url;
 
-  // 2. Parse embedded <img> tags inside content/description HTML payload
   const rawHtml = item.contentEncoded || item.content || item.summary || item.description || '';
   if (rawHtml) {
     try {
@@ -59,17 +62,15 @@ function getFeedImage(item, index) {
         return imgSrc;
       }
     } catch (e) {
-      // Ignore parse error and fall through
+      // Ignore HTML parse errors and fall through
     }
   }
 
-  // 3. Fallback stock photo if no article image is available
   return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 }
 
-// Strictly prioritize Publication Brand over Author Name
+// Brand Extraction via Article URL Domain
 function getCardSource(item, feedTitle, articleLink) {
-  // 1. First, parse domain name to get the publication brand
   try {
     const parsedUrl = new URL(articleLink);
     let host = parsedUrl.hostname.replace(/^www\./, '');
@@ -77,10 +78,8 @@ function getCardSource(item, feedTitle, articleLink) {
     let brand = parts.length > 2 ? parts[parts.length - 2] : parts[0];
 
     const brandMap = {
-      'fincen': 'FINCEN',
       'finextra': 'FINEXTRA',
-      'fatf-gafi': 'FATF',
-      'occ': 'OCC',
+      'occrp': 'OCCRP',
       'icij': 'ICIJ',
       'gijn': 'GIJN'
     };
@@ -93,24 +92,20 @@ function getCardSource(item, feedTitle, articleLink) {
       return brand.toUpperCase();
     }
   } catch (e) {
-    // Fall through to author/feed title if URL parsing fails
+    // Fall through if domain parsing fails
   }
 
-  // 2. Fallback to Feed Title or Author
-  if (feedTitle) {
-    return feedTitle.replace(/RSS|Feed|News|Latest/gi, '').trim().toUpperCase();
-  }
-
-  return 'INTELLIGENCE';
+  return feedTitle ? feedTitle.replace(/RSS|Feed|News|Latest/gi, '').trim().toUpperCase() : 'INTELLIGENCE';
 }
 
-app.get('/api/news', async (req, res) => {
+// In-Memory Scraping & Caching Engine
+async function refreshArticleCache() {
   try {
     const feedPromises = FEED_URLS.map(async (url) => {
       try {
         const feed = await parser.parseURL(url);
         
-        return feed.items.slice(0, 10).map((item, idx) => {
+        return feed.items.map((item, idx) => {
           return {
             title: item.title,
             link: item.link,
@@ -131,12 +126,48 @@ app.get('/api/news', async (req, res) => {
     const results = await Promise.all(feedPromises);
     let allArticles = results.flat();
 
-    // Sort chronologically (newest first)
+    // 1. Keep only articles published within the last 14 days
+    const fourteenDaysAgo = new Date();
+    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
+    allArticles = allArticles.filter(item => item.rawDate >= fourteenDaysAgo);
+
+    // 2. Sort chronologically (newest first)
     allArticles.sort((a, b) => b.rawDate - a.rawDate);
 
-    res.json(allArticles);
+    // 3. Save to global memory cache
+    articleCache = allArticles;
+    lastFetchTime = Date.now();
+    console.log(`Cache updated: ${articleCache.length} articles stored.`);
+  } catch (err) {
+    console.error('Error refreshing cache:', err.message);
+  }
+}
+
+// Aggregated & Paginated API Endpoint
+app.get('/api/news', async (req, res) => {
+  try {
+    // Fetch live feeds only if cache is empty or older than 15 minutes
+    if (!articleCache.length || (Date.now() - lastFetchTime > CACHE_DURATION)) {
+      await refreshArticleCache();
+    }
+
+    // Pagination query parameters (e.g., /api/news?page=1&limit=12)
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    const paginatedArticles = articleCache.slice(startIndex, endIndex);
+
+    res.json({
+      totalArticles: articleCache.length,
+      totalPages: Math.ceil(articleCache.length / limit),
+      currentPage: page,
+      articles: paginatedArticles
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch news' });
+    res.status(500).json({ error: 'Failed to retrieve news' });
   }
 });
 
