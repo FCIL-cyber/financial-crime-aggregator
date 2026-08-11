@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Financial Crime Intelligence Feed</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    header {
+      border-bottom: 2px solid #334155;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      color: #38bdf8;
+    }
+
+    p.subtitle {
+      margin: 0.5rem 0 0 0;
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+
+    .news-grid {
+      display: grid;
+      gap: 1.25rem;
+    }
+
+    .card {
+      background-color: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 1.25rem;
+      transition: border-color 0.2s ease-in-out;
+    }
+
+    .card:hover {
+      border-color: #38bdf8;
+    }
+
+    .card h3 {
+      margin: 0 0 0.5rem 0;
+      font-size: 1.15rem;
+      line-height: 1.4;
+    }
+
+    .card a {
+      color: #f1f5f9;
+      text-decoration: none;
+    }
+
+    .card a:hover {
+      color: #38bdf8;
+      text-decoration: underline;
+    }
+
+    .card-meta {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-top: 0.75rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #0284c7;
+      color: #fff;
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .loading {
+      color: #94a3b8;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Financial Crime & Regulatory Intelligence</h1>
+    <p class="subtitle">Real-time enforcement actions, compliance alerts, and policy updates</p>
+  </header>
+
+  <main>
+    <div id="news-container" class="news-grid">
+      <div class="loading">Fetching live financial crime intelligence...</div>
+    </div>
+  </main>
+
+  <script>
+    async function loadLiveNews() {
+      const container = document.getElementById('news-container');
+
+      try {
+        // Connects to your local Node.js backend running on port 3000
+        const response = await fetch('http://localhost:3000/api/news');
+        const articles = await response.json();
+
+        if (!articles || articles.length === 0) {
+          throw new Error('No articles returned from server');
+        }
+
+        container.innerHTML = '';
+
+        articles.forEach(item => {
+          const card = document.createElement('article');
+          card.className = 'card';
+          card.innerHTML = `
+            <span class="badge">${item.source}</span>
+            <h3><a href="${item.link}" target="_blank" rel="noopener noreferrer">${item.title}</a></h3>
+            <div class="card-meta">Published: ${item.date}</div>
+          `;
+          container.appendChild(card);
+        });
+
+      } catch (error) {
+        console.error('Error fetching backend news:', error);
+        container.innerHTML = '<div class="loading">Failed to load news from backend server. Ensure node server.js is running.</div>';
+      }
+    }
+
+    loadLiveNews();
+  </script>
+
+</body>
+</html>
