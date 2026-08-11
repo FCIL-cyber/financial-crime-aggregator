@@ -12,7 +12,8 @@ const parser = new Parser({
       ['media:content', 'mediaContent'],
       ['media:thumbnail', 'mediaThumbnail'],
       ['enclosure', 'enclosure'],
-      ['dc:creator', 'dcCreator']
+      ['dc:creator', 'dcCreator'],
+      ['author', 'author']
     ]
   }
 });
@@ -26,12 +27,15 @@ const FEED_URLS = [
   'https://www.finextra.com/rss/topic/crime'
 ];
 
-// Scrape og:image or twitter:image from article HTML if RSS lacks direct media
+// Scrape og:image from article HTML with Chrome User-Agent header
 async function fetchOgImage(link) {
   try {
     const { data } = await axios.get(link, { 
-      timeout: 3000,
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+      timeout: 4000,
+      headers: { 
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
+      }
     });
     const $ = cheerio.load(data);
     const ogImg = $('meta[property="og:image"]').attr('content') || $('meta[name="twitter:image"]').attr('content');
@@ -41,31 +45,43 @@ async function fetchOgImage(link) {
   }
 }
 
-// Check common RSS fields for direct image URLs
+// Extract image directly from RSS XML payload
 function getFeedImage(item) {
   if (item.mediaContent && item.mediaContent.$ && item.mediaContent.$.url) return item.mediaContent.$.url;
   if (item.mediaThumbnail && item.mediaThumbnail.$ && item.mediaThumbnail.$.url) return item.mediaThumbnail.$.url;
   if (item.enclosure && item.enclosure.url) return item.enclosure.url;
-  if (item.content || item['content:encoded']) {
-    const html = item.content || item['content:encoded'];
-    const imgMatch = html.match(/<img[^>]+src=["']([^"']+)["']/i);
-    if (imgMatch) return imgMatch[1];
-  }
+  
+  // Extract <img> src embedded inside RSS item description or content
+  const htmlContent = item.content || item['content:encoded'] || item.summary || item.description || '';
+  const imgMatch = htmlContent.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (imgMatch && imgMatch[1]) return imgMatch[1];
+
   return null;
 }
 
-// Extract specific author or fall back to publisher name
+// Extract Author Name or Clean Feed Publisher Title
 function getCardSource(item, feedTitle) {
-  let author = item.creator || item.author || item.dcCreator;
-  
-  if (author) {
-    // Clean up emails, tags, and extra spaces
-    author = author.replace(/<[^>]*>/g, '').replace(/[\w.-]+@[\w.-]+\.\w+/g, '').replace(/[()]/g, '').trim();
-    if (author.length > 0) return author.toUpperCase();
+  // 1. Try to find explicit human author
+  let rawAuthor = item.dcCreator || item.author || item.creator;
+  if (rawAuthor) {
+    if (typeof rawAuthor === 'object' && rawAuthor.name) rawAuthor = rawAuthor.name;
+    if (typeof rawAuthor === 'string') {
+      let cleanAuthor = rawAuthor
+        .replace(/<[^>]*>/g, '')
+        .replace(/[\w.-]+@[\w.-]+\.\w+/g, '')
+        .replace(/[()]/g, '')
+        .replace(/^by\s+/i, '')
+        .trim();
+      if (cleanAuthor.length > 0 && cleanAuthor.toLowerCase() !== 'admin') {
+        return cleanAuthor.toUpperCase();
+      }
+    }
   }
 
+  // 2. Fall back to Feed/Publisher Title
   if (feedTitle) {
-    return feedTitle.replace(/RSS|Feed|News|Latest/gi, '').trim().toUpperCase() || 'INTELLIGENCE';
+    const cleanTitle = feedTitle.replace(/RSS|Feed|News|Latest|Section/gi, '').trim();
+    if (cleanTitle.length > 0) return cleanTitle.toUpperCase();
   }
 
   return 'FINANCIAL CRIME LAB';
@@ -77,9 +93,10 @@ app.get('/api/news', async (req, res) => {
       try {
         const feed = await parser.parseURL(url);
         
-        const itemPromises = feed.items.slice(0, 10).map(async (item) => {
+        const itemPromises = feed.items.slice(0, 8).map(async (item) => {
           let image = getFeedImage(item);
           
+          // Scrape live webpage if direct feed image was missing
           if (!image && item.link) {
             image = await fetchOgImage(item.link);
           }
@@ -97,7 +114,7 @@ app.get('/api/news', async (req, res) => {
 
         return await Promise.all(itemPromises);
       } catch (err) {
-        console.error(`Error fetching ${url}:`, err.message);
+        console.error(`Error fetching feed ${url}:`, err.message);
         return [];
       }
     });
@@ -106,7 +123,7 @@ app.get('/api/news', async (req, res) => {
     const allArticles = results.flat();
     res.json(allArticles);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch feeds' });
+    res.status(500).json({ error: 'Failed to fetch news' });
   }
 });
 
