@@ -11,7 +11,8 @@ const parser = new Parser({
     item: [
       ['media:content', 'mediaContent'],
       ['media:thumbnail', 'mediaThumbnail'],
-      ['enclosure', 'enclosure']
+      ['enclosure', 'enclosure'],
+      ['dc:creator', 'dcCreator']
     ]
   }
 });
@@ -19,12 +20,13 @@ const parser = new Parser({
 const PORT = process.env.PORT || 3000;
 app.use(cors());
 
+// List of RSS Feeds
 const FEED_URLS = [
   'https://www.cnbc.com/id/10000115/device/rss/rss.html',
   'https://www.finextra.com/rss/topic/crime'
 ];
 
-// Helper to scrape og:image from target URL if RSS lacks an image
+// Scrape og:image or twitter:image from article HTML if RSS lacks direct media
 async function fetchOgImage(link) {
   try {
     const { data } = await axios.get(link, { 
@@ -39,6 +41,7 @@ async function fetchOgImage(link) {
   }
 }
 
+// Check common RSS fields for direct image URLs
 function getFeedImage(item) {
   if (item.mediaContent && item.mediaContent.$ && item.mediaContent.$.url) return item.mediaContent.$.url;
   if (item.mediaThumbnail && item.mediaThumbnail.$ && item.mediaThumbnail.$.url) return item.mediaThumbnail.$.url;
@@ -51,17 +54,32 @@ function getFeedImage(item) {
   return null;
 }
 
+// Extract specific author or fall back to publisher name
+function getCardSource(item, feedTitle) {
+  let author = item.creator || item.author || item.dcCreator;
+  
+  if (author) {
+    // Clean up emails, tags, and extra spaces
+    author = author.replace(/<[^>]*>/g, '').replace(/[\w.-]+@[\w.-]+\.\w+/g, '').replace(/[()]/g, '').trim();
+    if (author.length > 0) return author.toUpperCase();
+  }
+
+  if (feedTitle) {
+    return feedTitle.replace(/RSS|Feed|News|Latest/gi, '').trim().toUpperCase() || 'INTELLIGENCE';
+  }
+
+  return 'FINANCIAL CRIME LAB';
+}
+
 app.get('/api/news', async (req, res) => {
   try {
     const feedPromises = FEED_URLS.map(async (url) => {
       try {
         const feed = await parser.parseURL(url);
         
-        // Process articles and extract/scrape unique images
         const itemPromises = feed.items.slice(0, 10).map(async (item) => {
           let image = getFeedImage(item);
           
-          // Scrape webpage meta tag if feed didn't provide direct image
           if (!image && item.link) {
             image = await fetchOgImage(item.link);
           }
@@ -72,7 +90,7 @@ app.get('/api/news', async (req, res) => {
             date: item.pubDate 
               ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) 
               : 'Recent',
-            source: feed.title ? feed.title.split(' ')[0].toUpperCase() : 'INTELLIGENCE',
+            source: getCardSource(item, feed.title),
             image: image || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80'
           };
         });
