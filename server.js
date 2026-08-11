@@ -19,14 +19,20 @@ const parser = new Parser({
 const PORT = process.env.PORT || 3000;
 app.use(cors());
 
-// Primary Financial Crime, Compliance & Regulatory RSS Feeds
+// Health check route for keep-alive pings
+app.get('/', (req, res) => {
+  res.send('FCIL Aggregator API is running smoothly.');
+});
+
+// Primary Financial Crime & Investigative Journalism Feeds
 const FEED_URLS = [
   'https://www.finextra.com/rss/topic/crime',
-  'https://www.cnbc.com/id/100003114/device/rss/rss.html',
-  'https://www.occ.gov/rss/news-releases.xml'
+  'https://www.occ.gov/rss/news-releases.xml',
+  'https://www.icij.org/feed/',
+  'https://gijn.org/feed/'
 ];
 
-// Fallback high-res stock images for financial & regulatory news
+// Fallback high-res stock images
 const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80',
   'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80',
@@ -76,7 +82,8 @@ function getCardSource(item, feedTitle, articleLink) {
       'finextra': 'FINEXTRA',
       'fatf-gafi': 'FATF',
       'occ': 'OCC',
-      'cnbc': 'CNBC'
+      'icij': 'ICIJ',
+      'gijn': 'GIJN'
     };
 
     return brandMap[brand.toLowerCase()] || brand.toUpperCase();
