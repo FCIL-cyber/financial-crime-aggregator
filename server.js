@@ -31,7 +31,8 @@ const FEED_URLS = [
   'https://www.finextra.com/rss/channel.aspx?channel=crime',
   'https://www.occrp.org/en/feed',
   'https://www.icij.org/feed/',
-  'https://gijn.org/feed/'
+  'https://gijn.org/feed/',
+  'https://eng.lsm.lv/rss/?lang=en&catid=21653'
 ];
 
 // Fallback high-res stock images
