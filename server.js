@@ -23,11 +23,11 @@ app.use(cors());
 
 // List of RSS Feeds
 const FEED_URLS = [
-  'https://www.cnbc.com/id/10000115/device/rss/rss.html',
+  'https://www.cnbc.com/id/100003114/device/rss/rss.html',
   'https://www.finextra.com/rss/topic/crime'
 ];
 
-// Scrape og:image from article HTML with Chrome User-Agent header
+// Scrape og:image or twitter:image from article HTML
 async function fetchOgImage(link) {
   try {
     const { data } = await axios.get(link, { 
@@ -51,7 +51,6 @@ function getFeedImage(item) {
   if (item.mediaThumbnail && item.mediaThumbnail.$ && item.mediaThumbnail.$.url) return item.mediaThumbnail.$.url;
   if (item.enclosure && item.enclosure.url) return item.enclosure.url;
   
-  // Extract <img> src embedded inside RSS item description or content
   const htmlContent = item.content || item['content:encoded'] || item.summary || item.description || '';
   const imgMatch = htmlContent.match(/<img[^>]+src=["']([^"']+)["']/i);
   if (imgMatch && imgMatch[1]) return imgMatch[1];
@@ -59,9 +58,9 @@ function getFeedImage(item) {
   return null;
 }
 
-// Extract Author Name or Clean Feed Publisher Title
-function getCardSource(item, feedTitle) {
-  // 1. Try to find explicit human author
+// Extract Author or Fall Back to Domain Parsing
+function getCardSource(item, feedTitle, articleLink) {
+  // 1. Try explicit author field
   let rawAuthor = item.dcCreator || item.author || item.creator;
   if (rawAuthor) {
     if (typeof rawAuthor === 'object' && rawAuthor.name) rawAuthor = rawAuthor.name;
@@ -78,13 +77,27 @@ function getCardSource(item, feedTitle) {
     }
   }
 
-  // 2. Fall back to Feed/Publisher Title
-  if (feedTitle) {
-    const cleanTitle = feedTitle.replace(/RSS|Feed|News|Latest|Section/gi, '').trim();
-    if (cleanTitle.length > 0) return cleanTitle.toUpperCase();
-  }
+  // 2. Parse domain name from the article link
+  try {
+    const parsedUrl = new URL(articleLink);
+    let host = parsedUrl.hostname.replace(/^www\./, '');
+    let parts = host.split('.');
+    
+    let brand = parts.length > 2 ? parts[parts.length - 2] : parts[0];
 
-  return 'FINANCIAL CRIME LAB';
+    const brandMap = {
+      'fincen': 'FINCEN',
+      'finextra': 'FINEXTRA',
+      'fatf-gafi': 'FATF',
+      'occ': 'OCC',
+      'cnbc': 'CNBC'
+    };
+
+    return brandMap[brand.toLowerCase()] || brand.toUpperCase();
+  } catch (e) {
+    // 3. Fallback to feed title
+    return feedTitle ? feedTitle.replace(/RSS|Feed|News|Latest/gi, '').trim().toUpperCase() : 'INTELLIGENCE';
+  }
 }
 
 app.get('/api/news', async (req, res) => {
@@ -96,7 +109,6 @@ app.get('/api/news', async (req, res) => {
         const itemPromises = feed.items.slice(0, 8).map(async (item) => {
           let image = getFeedImage(item);
           
-          // Scrape live webpage if direct feed image was missing
           if (!image && item.link) {
             image = await fetchOgImage(item.link);
           }
@@ -107,7 +119,7 @@ app.get('/api/news', async (req, res) => {
             date: item.pubDate 
               ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) 
               : 'Recent',
-            source: getCardSource(item, feed.title),
+            source: getCardSource(item, feed.title, item.link),
             image: image || 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80'
           };
         });
