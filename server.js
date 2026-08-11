@@ -1,15 +1,17 @@
 const express = require('express');
 const Parser = require('rss-parser');
 const cors = require('cors');
+const cheerio = require('cheerio');
 
 const app = express();
 const parser = new Parser({
-  timeout: 3000,
+  timeout: 4000,
   customFields: {
     item: [
       ['media:content', 'mediaContent'],
       ['media:thumbnail', 'mediaThumbnail'],
       ['enclosure', 'enclosure'],
+      ['content:encoded', 'contentEncoded'],
       ['dc:creator', 'dcCreator'],
       ['author', 'author']
     ]
@@ -24,7 +26,7 @@ app.get('/', (req, res) => {
   res.send('FCIL Aggregator API is running smoothly.');
 });
 
-// Primary Financial Crime & Investigative Journalism Feeds
+// Targeted Financial Crime & Investigative Feeds
 const FEED_URLS = [
   'https://www.finextra.com/rss/topic/crime',
   'https://www.occ.gov/rss/news-releases.xml',
@@ -32,7 +34,7 @@ const FEED_URLS = [
   'https://gijn.org/feed/'
 ];
 
-// Fallback high-res stock images
+// Fallback images only used if NO image exists in XML/HTML
 const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80',
   'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80',
@@ -40,37 +42,34 @@ const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80'
 ];
 
-// Extract image directly from RSS XML payload
+// Thorough XML & HTML Image Extraction
 function getFeedImage(item, index) {
+  // 1. Direct XML Media Enclosures
   if (item.mediaContent && item.mediaContent.$ && item.mediaContent.$.url) return item.mediaContent.$.url;
   if (item.mediaThumbnail && item.mediaThumbnail.$ && item.mediaThumbnail.$.url) return item.mediaThumbnail.$.url;
   if (item.enclosure && item.enclosure.url) return item.enclosure.url;
-  
-  const htmlContent = item.content || item['content:encoded'] || item.summary || item.description || '';
-  const imgMatch = htmlContent.match(/<img[^>]+src=["']([^"']+)["']/i);
-  if (imgMatch && imgMatch[1]) return imgMatch[1];
 
-  return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
-}
-
-// Extract Author or Fall Back to Domain Parsing
-function getCardSource(item, feedTitle, articleLink) {
-  let rawAuthor = item.dcCreator || item.author || item.creator;
-  if (rawAuthor) {
-    if (typeof rawAuthor === 'object' && rawAuthor.name) rawAuthor = rawAuthor.name;
-    if (typeof rawAuthor === 'string') {
-      let cleanAuthor = rawAuthor
-        .replace(/<[^>]*>/g, '')
-        .replace(/[\w.-]+@[\w.-]+\.\w+/g, '')
-        .replace(/[()]/g, '')
-        .replace(/^by\s+/i, '')
-        .trim();
-      if (cleanAuthor.length > 0 && cleanAuthor.toLowerCase() !== 'admin') {
-        return cleanAuthor.toUpperCase();
+  // 2. Parse embedded <img> tags inside content/description HTML payload
+  const rawHtml = item.contentEncoded || item.content || item.summary || item.description || '';
+  if (rawHtml) {
+    try {
+      const $ = cheerio.load(rawHtml);
+      const imgSrc = $('img').first().attr('src');
+      if (imgSrc && imgSrc.startsWith('http')) {
+        return imgSrc;
       }
+    } catch (e) {
+      // Ignore parse error and fall through
     }
   }
 
+  // 3. Fallback stock photo if no article image is available
+  return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+}
+
+// Strictly prioritize Publication Brand over Author Name
+function getCardSource(item, feedTitle, articleLink) {
+  // 1. First, parse domain name to get the publication brand
   try {
     const parsedUrl = new URL(articleLink);
     let host = parsedUrl.hostname.replace(/^www\./, '');
@@ -86,10 +85,23 @@ function getCardSource(item, feedTitle, articleLink) {
       'gijn': 'GIJN'
     };
 
-    return brandMap[brand.toLowerCase()] || brand.toUpperCase();
+    if (brandMap[brand.toLowerCase()]) {
+      return brandMap[brand.toLowerCase()];
+    }
+
+    if (brand && brand.length > 2) {
+      return brand.toUpperCase();
+    }
   } catch (e) {
-    return feedTitle ? feedTitle.replace(/RSS|Feed|News|Latest/gi, '').trim().toUpperCase() : 'INTELLIGENCE';
+    // Fall through to author/feed title if URL parsing fails
   }
+
+  // 2. Fallback to Feed Title or Author
+  if (feedTitle) {
+    return feedTitle.replace(/RSS|Feed|News|Latest/gi, '').trim().toUpperCase();
+  }
+
+  return 'INTELLIGENCE';
 }
 
 app.get('/api/news', async (req, res) => {
@@ -119,7 +131,7 @@ app.get('/api/news', async (req, res) => {
     const results = await Promise.all(feedPromises);
     let allArticles = results.flat();
 
-    // Sort by publication date (newest first)
+    // Sort chronologically (newest first)
     allArticles.sort((a, b) => b.rawDate - a.rawDate);
 
     res.json(allArticles);
