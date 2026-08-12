@@ -88,7 +88,7 @@
       letter-spacing: 0.05em;
     }
 
-    /* Grid Layout - Explicitly targeting 4 cards per row on large displays */
+    /* Grid Layout - 4 cards per row on desktop */
     .grid-container {
       max-width: 1200px;
       margin: 0 auto;
@@ -173,10 +173,14 @@
     .card-title a {
       color: var(--text-main);
       text-decoration: none;
+      transition: background-color 0.1s ease, color 0.1s ease;
     }
 
+    /* Orange Title Hover Highlight with White Text */
     .card-title a:hover {
-      background-color: var(--accent-yellow);
+      background-color: var(--accent-orange);
+      color: #ffffff;
+      padding: 0 0.2rem;
     }
 
     /* Controls & Pagination */
