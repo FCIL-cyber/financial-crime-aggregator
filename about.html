@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - Financial Crime Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #f4f4f0;
+      --header-bg: #f4f4f0;
+      --card-bg: #ffffff;
+      --text-main: #000000;
+      --accent-orange: #ff5500;
+      --accent-yellow: #ffe600;
+      --border-color: #000000;
+      --grid-line: #eaeaea;
+      --shadow-hard: 4px 4px 0px #000000;
+      --shadow-hard-lg: 6px 6px 0px #000000;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: var(--bg-color);
+      background-image: 
+        linear-gradient(var(--grid-line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+      background-size: 24px 24px;
+      color: var(--text-main);
+      padding-bottom: 3rem;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      background-color: var(--header-bg);
+      border-bottom: 3px solid var(--border-color);
+      padding: 1.5rem 2rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .header-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand-box {
+      background-color: #ffffff;
+      border: 3px solid var(--border-color);
+      box-shadow: var(--shadow-hard);
+      padding: 0.6rem 1.25rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-box h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    nav {
+      display: flex;
+      gap: 0.75rem;
+    }
+
+    .nav-btn {
+      background-color: #ffffff;
+      color: #000000;
+      border: 3px solid var(--border-color);
+      box-shadow: 3px 3px 0px #000;
+      padding: 0.5rem 1rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      text-decoration: none;
+      transition: all 0.1s ease;
+    }
+
+    .nav-btn:hover, .nav-btn.active {
+      background-color: var(--accent-orange);
+      color: #ffffff;
+    }
+
+    .content-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+
+    .about-card {
+      background-color: var(--card-bg);
+      border: 3px solid var(--border-color);
+      box-shadow: var(--shadow-hard-lg);
+      padding: 2rem;
+    }
+
+    .about-card h2 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+      border-bottom: 3px solid var(--border-color);
+      padding-bottom: 0.5rem;
+    }
+
+    .about-card p {
+      line-height: 1.6;
+      margin-bottom: 1.25rem;
+      font-size: 1rem;
+    }
+
+    .about-card ul {
+      margin-left: 1.5rem;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .tag-badge {
+      display: inline-block;
+      background-color: var(--accent-yellow);
+      border: 2px solid var(--border-color);
+      padding: 0.2rem 0.5rem;
+      font-weight: 800;
+      font-size: 0.8rem;
+      box-shadow: 2px 2px 0px #000;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-container">
+      <a href="index.html" class="brand-box">
+        <h1>Financial Crime Intelligence</h1>
+      </a>
+      <nav>
+        <a href="index.html" class="nav-btn">Live Feed</a>
+        <a href="about.html" class="nav-btn active">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="content-container">
+      <article class="about-card">
+        <h2>About The Project</h2>
+        <p>This aggregator provides real-time financial crime, sanctions, and regulatory intelligence gathered directly from key investigative newsrooms and government bodies.</p>
+        
+        <p>Instead of relying on automated noise, this platform curates high-value updates from dedicated investigative outlets and official registers, including:</p>
+        
+        <ul>
+          <li><strong>OCCRP & ICIJ:</strong> Global investigative reporting on money laundering and transnational corruption.</li>
+          <li><strong>FinCEN (Federal Register):</strong> Official U.S. treasury advisories, rulemakings, and GTOs.</li>
+          <li><strong>Bellingcat:</strong> Open-source intelligence and asset tracking.</li>
+          <li><strong>Transparency International & LSM:</strong> European regional integrity and compliance news.</li>
+        </ul>
+
+        <p><span class="tag-badge">UPDATE FREQUENCY</span> Feeds refresh every 15 minutes to display verified intelligence from the past 14 days.</p>
+      </article>
+    </div>
+  </main>
+
+</body>
+</html>
