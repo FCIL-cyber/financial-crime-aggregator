@@ -32,7 +32,7 @@ const FEED_URLS = [
   'https://www.occrp.org/en/feed',
   'https://www.icij.org/feed/',
   'https://gijn.org/feed/',
-  'https://eng.lsm.lv/rss/?lang=en&catid=21653'
+  'https://eng.lsm.lv/rss/?lang=en&catid=21653',
   'https://www.bellingcat.com/feed'
 ];
 
