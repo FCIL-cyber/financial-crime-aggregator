@@ -183,4 +183,26 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
+// Diagnostic Endpoint: Detailed Source Article Breakdown
+app.get('/api/debug-sources', async (req, res) => {
+  try {
+    if (!articleCache.length || (Date.now() - lastFetchTime > CACHE_DURATION)) {
+      await refreshArticleCache();
+    }
+
+    const breakdown = articleCache.reduce((acc, article) => {
+      acc[article.source] = (acc[article.source] || 0) + 1;
+      return acc;
+    }, {});
+
+    res.json({
+      lastFetchTime: new Date(lastFetchTime).toISOString(),
+      totalArticles: articleCache.length,
+      sourceBreakdown: breakdown
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to inspect sources' });
+  }
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
