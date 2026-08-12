@@ -4,15 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Financial Crime & Regulatory Intelligence</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
   <style>
     :root {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --accent-color: #38bdf8;
-      --accent-hover: #0284c7;
-      --border-color: #334155;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --accent-tag: #1e293b;
+      --accent-tag-text: #f8fafc;
+      --border-color: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --primary-link: #0f172a;
+      --link-hover: #2563eb;
+      --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
     }
 
     * {
@@ -22,59 +31,101 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
-      padding: 2rem 1rem;
+      padding: 3rem 1.5rem;
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
 
+    /* Minimalist Header */
     header {
       max-width: 1200px;
-      margin: 0 auto 2.5rem auto;
-      text-align: center;
+      margin: 0 auto 3rem auto;
+      border-bottom: 2px solid var(--text-main);
+      padding-bottom: 1.5rem;
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 1rem;
     }
 
     header h1 {
-      font-size: 2.25rem;
-      letter-spacing: -0.025em;
-      margin-bottom: 0.5rem;
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      text-transform: uppercase;
       color: var(--text-main);
+      line-height: 1.1;
     }
 
     header p {
       color: var(--text-muted);
-      font-size: 1rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      margin-top: 0.4rem;
     }
 
+    .header-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      background-color: #e2e8f0;
+      color: var(--text-main);
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+    }
+
+    /* Grid Layout */
     .grid-container {
       max-width: 1200px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 2rem;
     }
 
+    /* Clean Card Aesthetic */
     .news-card {
       background-color: var(--card-bg);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 6px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
     .news-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--border-hover);
+    }
+
+    .card-image-wrapper {
+      position: relative;
+      width: 100%;
+      height: 190px;
+      overflow: hidden;
+      background-color: #f1f5f9;
     }
 
     .card-image {
       width: 100%;
-      height: 180px;
+      height: 100%;
       object-fit: cover;
-      background-color: #0f172a;
+      transition: transform 0.3s ease;
+    }
+
+    .news-card:hover .card-image {
+      transform: scale(1.03);
     }
 
     .card-body {
@@ -88,91 +139,105 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.75rem;
-      font-size: 0.75rem;
-      font-weight: 600;
+      margin-bottom: 0.85rem;
     }
 
     .source-tag {
-      background-color: rgba(56, 189, 248, 0.1);
-      color: var(--accent-color);
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-      letter-spacing: 0.05em;
+      background-color: var(--accent-tag);
+      color: var(--accent-tag-text);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 0.25rem 0.55rem;
+      border-radius: 3px;
+      text-transform: uppercase;
     }
 
     .card-date {
       color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 500;
     }
 
     .card-title {
       font-size: 1.1rem;
+      font-weight: 700;
       line-height: 1.4;
-      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.75rem;
       flex-grow: 1;
     }
 
     .card-title a {
-      color: var(--text-main);
+      color: var(--primary-link);
       text-decoration: none;
       transition: color 0.15s ease;
     }
 
     .card-title a:hover {
-      color: var(--accent-color);
+      color: var(--link-hover);
     }
 
+    /* Minimal Pagination Controls */
     .pagination-container {
       max-width: 1200px;
-      margin: 3rem auto 1rem auto;
+      margin: 3.5rem auto 1rem auto;
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 1rem;
+      gap: 1.25rem;
     }
 
     .pagination-btn {
       background-color: var(--card-bg);
       color: var(--text-main);
       border: 1px solid var(--border-color);
-      padding: 0.5rem 1.25rem;
-      border-radius: 6px;
+      padding: 0.6rem 1.4rem;
+      border-radius: 5px;
       cursor: pointer;
-      font-size: 0.9rem;
-      font-weight: 500;
-      transition: background-color 0.15s ease, border-color 0.15s ease;
+      font-size: 0.85rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
     }
 
     .pagination-btn:hover:not(:disabled) {
-      background-color: var(--accent-color);
-      color: #0f172a;
-      border-color: var(--accent-color);
+      background-color: var(--text-main);
+      color: #ffffff;
+      border-color: var(--text-main);
     }
 
     .pagination-btn:disabled {
-      opacity: 0.4;
+      opacity: 0.35;
       cursor: not-allowed;
+      box-shadow: none;
     }
 
     .page-indicator {
       color: var(--text-muted);
-      font-size: 0.9rem;
+      font-size: 0.85rem;
+      font-weight: 600;
     }
 
     .status-msg {
       grid-column: 1 / -1;
       text-align: center;
-      padding: 4rem 0;
+      padding: 5rem 0;
       color: var(--text-muted);
-      font-size: 1.1rem;
+      font-size: 1rem;
+      font-weight: 500;
     }
 
     @media (max-width: 640px) {
       body {
-        padding: 1rem 0.5rem;
+        padding: 1.5rem 1rem;
       }
       header h1 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
+      }
+      .header-content {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
   </style>
@@ -180,8 +245,13 @@
 <body>
 
   <header>
-    <h1>Financial Crime & Regulatory Intelligence</h1>
-    <p>Real-time enforcement actions, compliance alerts, and policy updates</p>
+    <div class="header-content">
+      <div>
+        <h1>Financial Crime &amp; Intelligence</h1>
+        <p>Real-time enforcement actions, compliance deconstructions, and policy alerts</p>
+      </div>
+      <div class="header-badge">Live Feed</div>
+    </div>
   </header>
 
   <main>
@@ -190,9 +260,9 @@
     </div>
 
     <div class="pagination-container">
-      <button id="prev-btn" class="pagination-btn" onclick="changePage(-1)" disabled>Previous</button>
+      <button id="prev-btn" class="pagination-btn" onclick="changePage(-1)" disabled>&larr; Previous</button>
       <span id="page-indicator" class="page-indicator">Page 1</span>
-      <button id="next-btn" class="pagination-btn" onclick="changePage(1)" disabled>Next</button>
+      <button id="next-btn" class="pagination-btn" onclick="changePage(1)" disabled>Next &rarr;</button>
     </div>
   </main>
 
@@ -202,22 +272,16 @@
     let totalPages = 1;
 
     async function fetchNews(page = 1) {
-      const container = document.getElementById('news-container') || document.querySelector('.grid-container');
-      
+      const container = document.getElementById('news-container');
       if (!container) return;
 
-      container.innerHTML = '<div class="status-msg">Loading latest intelligence...</div>';
+      container.innerHTML = '<div class="status-msg">Loading intelligence feed...</div>';
 
       try {
         const response = await fetch(`${API_URL}?page=${page}&limit=12`);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
         const data = await response.json();
-        
-        // Supports both array responses and object responses ({ articles: [...] })
         const articles = Array.isArray(data) ? data : (data.articles || []);
         
         currentPage = data.currentPage || 1;
@@ -234,11 +298,13 @@
         articles.forEach(article => {
           const card = `
             <article class="news-card">
-              <img class="card-image" 
-                   src="${article.image}" 
-                   alt="${article.title}" 
-                   loading="lazy" 
-                   onerror="this.src='https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80'">
+              <div class="card-image-wrapper">
+                <img class="card-image" 
+                     src="${article.image}" 
+                     alt="${article.title}" 
+                     loading="lazy" 
+                     onerror="this.src='https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80'">
+              </div>
               <div class="card-body">
                 <div class="card-meta">
                   <span class="source-tag">${article.source || 'INTELLIGENCE'}</span>
