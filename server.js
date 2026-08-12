@@ -28,11 +28,12 @@ const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
 
 // Target Financial Crime & Investigative Reporting Feeds
 const FEED_URLS = [
-  'https://www.finextra.com/rss/channel.aspx?channel=crime',
+  'https://fcil.substack.com/feed',
   'https://www.occrp.org/en/feed',
   'https://www.icij.org/feed/',
   'https://gijn.org/feed/',
   'https://eng.lsm.lv/rss/?lang=en&catid=21653'
+  'https://www.bellingcat.com/feed'
 ];
 
 // Fallback high-res stock images
