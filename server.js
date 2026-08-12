@@ -5,11 +5,11 @@ const cheerio = require('cheerio');
 
 const app = express();
 
-// Configured Parser with 10s timeout and Custom User-Agent to prevent anti-bot blocking
+// Configured Parser with 10s timeout and Custom User-Agent to handle RSS bridges safely
 const parser = new Parser({
-  timeout: 10000, // 10 seconds
+  timeout: 10000,
   headers: {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     'Accept': 'application/rss+xml, application/xml, text/xml; q=0.1'
   },
   customFields: {
@@ -34,12 +34,13 @@ const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
 
 // Target Financial Crime & Investigative Reporting Feeds
 const FEED_URLS = [
-  'https://fcil.substack.com/feed',
   'https://www.occrp.org/en/feed',
   'https://www.icij.org/feed/',
-  'https://gijn.org/feed/',
-  'https://eng.lsm.lv/rss/?lang=en&catid=21653',
-  'https://www.bellingcat.com/feed'
+  'https://transparency.ie/taxonomy/term/5/feed',
+  'https://fcil.substack.com/feed',
+  'https://www.bellingcat.com/feed',
+  'https://www.federalregister.gov/api/v1/documents.rss?conditions%5Bagencies%5D%5B%5D=financial-crimes-enforcement-network',
+  'https://news.google.com/rss/search?q=site:transparency.org&hl=en-US&gl=US&ceid=US:en'
 ];
 
 // Fallback high-res stock images
@@ -50,12 +51,12 @@ const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80'
 ];
 
-// Health check route for keep-alive pings
+// Health check route
 app.get('/', (req, res) => {
   res.send('FCIL Aggregator API is running smoothly.');
 });
 
-// Thorough XML & HTML Image Extraction
+// XML & HTML Image Extraction
 function getFeedImage(item, index) {
   if (item.mediaContent && item.mediaContent.$ && item.mediaContent.$.url) return item.mediaContent.$.url;
   if (item.mediaThumbnail && item.mediaThumbnail.$ && item.mediaThumbnail.$.url) return item.mediaThumbnail.$.url;
@@ -77,7 +78,7 @@ function getFeedImage(item, index) {
   return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 }
 
-// Brand Extraction via Article URL Domain
+// Brand Extraction via Article URL Domain & Feed Context
 function getCardSource(item, feedTitle, articleLink) {
   try {
     const parsedUrl = new URL(articleLink);
@@ -86,13 +87,13 @@ function getCardSource(item, feedTitle, articleLink) {
     let brand = parts.length > 2 ? parts[parts.length - 2] : parts[0];
 
     const brandMap = {
-      'finextra': 'FINEXTRA',
       'occrp': 'OCCRP',
       'icij': 'ICIJ',
-      'gijn': 'GIJN',
+      'transparency': 'TRANSPARENCY INT',
       'substack': 'FCIL SUBSTACK',
       'bellingcat': 'BELLINGCAT',
-      'lsm': 'LSM'
+      'federalregister': 'FINCEN (FED REG)',
+      'google': 'TRANSPARENCY INT'
     };
 
     if (brandMap[brand.toLowerCase()]) {
@@ -112,7 +113,7 @@ function getCardSource(item, feedTitle, articleLink) {
 // In-Memory Scraping & Caching Engine
 async function refreshArticleCache() {
   try {
-    console.log('Fetching live RSS feeds...');
+    console.log('Fetching updated intelligence feeds...');
     const feedPromises = FEED_URLS.map(async (url) => {
       try {
         const feed = await parser.parseURL(url);
@@ -164,7 +165,6 @@ app.get('/api/news', async (req, res) => {
       await refreshArticleCache();
     }
 
-    // Pagination query parameters (e.g., /api/news?page=1&limit=12)
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 12;
     const startIndex = (page - 1) * limit;
