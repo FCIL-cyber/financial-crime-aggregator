@@ -4,8 +4,14 @@ const cors = require('cors');
 const cheerio = require('cheerio');
 
 const app = express();
+
+// Configured Parser with 10s timeout and Custom User-Agent to prevent anti-bot blocking
 const parser = new Parser({
-  timeout: 4000,
+  timeout: 10000, // 10 seconds
+  headers: {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'application/rss+xml, application/xml, text/xml; q=0.1'
+  },
   customFields: {
     item: [
       ['media:content', 'mediaContent'],
@@ -83,7 +89,10 @@ function getCardSource(item, feedTitle, articleLink) {
       'finextra': 'FINEXTRA',
       'occrp': 'OCCRP',
       'icij': 'ICIJ',
-      'gijn': 'GIJN'
+      'gijn': 'GIJN',
+      'substack': 'FCIL SUBSTACK',
+      'bellingcat': 'BELLINGCAT',
+      'lsm': 'LSM'
     };
 
     if (brandMap[brand.toLowerCase()]) {
@@ -103,6 +112,7 @@ function getCardSource(item, feedTitle, articleLink) {
 // In-Memory Scraping & Caching Engine
 async function refreshArticleCache() {
   try {
+    console.log('Fetching live RSS feeds...');
     const feedPromises = FEED_URLS.map(async (url) => {
       try {
         const feed = await parser.parseURL(url);
@@ -120,7 +130,7 @@ async function refreshArticleCache() {
           };
         });
       } catch (err) {
-        console.error(`Error fetching feed ${url}:`, err.message);
+        console.error(`Error fetching feed [${url}]:`, err.message);
         return [];
       }
     });
@@ -140,7 +150,7 @@ async function refreshArticleCache() {
     // 3. Save to global memory cache
     articleCache = allArticles;
     lastFetchTime = Date.now();
-    console.log(`Cache updated: ${articleCache.length} articles stored.`);
+    console.log(`Cache successfully updated: ${articleCache.length} articles retained from past 14 days.`);
   } catch (err) {
     console.error('Error refreshing cache:', err.message);
   }
