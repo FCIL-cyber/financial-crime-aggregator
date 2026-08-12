@@ -40,7 +40,7 @@ const FEED_URLS = [
   'https://fcil.substack.com/feed',
   'https://www.bellingcat.com/feed',
   'https://www.federalregister.gov/api/v1/documents.rss?conditions%5Bagencies%5D%5B%5D=financial-crimes-enforcement-network',
-  'https://eng.lsm.lv/rss/?lang=en&catid=21653'
+  'https://eng.lsm.lv/rss/?lang=en&catid=21653',
   'https://news.google.com/rss/search?q=site:transparency.org&hl=en-US&gl=US&ceid=US:en'
 ];
 
