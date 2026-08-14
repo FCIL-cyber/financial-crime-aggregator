@@ -49,12 +49,13 @@ initDatabase();
 const FEED_URLS = [
   'https://www.occrp.org/en/feed',
   'https://www.icij.org/feed/',
+  'https://www.bellingcat.com/feed',
   'https://transparency.ie/taxonomy/term/5/feed',
   'https://fcil.substack.com/feed',
-  'https://www.bellingcat.com/feed',
   'https://www.federalregister.gov/api/v1/documents.rss?conditions%5Bagencies%5D%5B%5D=financial-crimes-enforcement-network',
-  'https://news.google.com/rss/search?q=%22Transparency+International%22&hl=en-US&gl=US&ceid=US:en',
-  'https://news.google.com/rss/search?q=site:thebureauinvestigates.com&hl=en-US&gl=US&ceid=US:en'
+  'https://www.gov.uk/government/organisations/serious-fraud-office.atom',
+  'https://www.gov.uk/government/organisations/national-crime-agency.atom',
+  'https://www.sec.gov/rss/news/press.xml'
 ];
 
 const FALLBACK_IMAGES = [
