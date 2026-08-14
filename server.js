@@ -141,16 +141,26 @@ function getCardSource(item, feedTitle, articleLink) {
 async function runIngestionWorker() {
   console.log('[CRON] Starting background RSS ingestion...');
 
+  // Define 14-day cutoff threshold
+  const fourteenDaysAgo = new Date();
+  fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
+
   for (const url of FEED_URLS) {
     try {
       const feed = await parser.parseURL(url);
 
       for (let idx = 0; idx < (feed.items || []).length; idx++) {
         const item = feed.items[idx];
+        const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
+
+        // 🛑 SKIP ARTICLES OLDER THAN 14 DAYS IMMEDIATELY
+        if (pubDate < fourteenDaysAgo) {
+          continue; 
+        }
+
         const guid = item.guid || item.link;
         const link = item.link || '#';
         const title = item.title || 'Untitled Article';
-        const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
         const source = getCardSource(item, feed.title, link);
 
         let image = getFeedImage(item, idx);
@@ -173,6 +183,15 @@ async function runIngestionWorker() {
       console.error(`[CRON Error] ${url}:`, err.message);
     }
   }
+
+  // Delete any lingering articles older than 14 days
+  try {
+    await pool.query("DELETE FROM articles WHERE published_at < NOW() - INTERVAL '14 days';");
+    console.log('[CRON] Background ingestion complete. Old articles cleaned up.');
+  } catch (cleanupErr) {
+    console.error('[CRON Cleanup Error]:', cleanupErr.message);
+  }
+}
 
   // Delete articles older than 14 days to keep DB fast and clean
   try {
