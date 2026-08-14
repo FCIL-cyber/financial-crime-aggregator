@@ -195,6 +195,44 @@
       padding: 0 0.2rem;
     }
 
+    /* Skeleton Loading Cards */
+    .skeleton-card {
+      pointer-events: none;
+    }
+
+    .skeleton-box {
+      background-color: #e5e7eb;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .skeleton-box::after {
+      content: "";
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      transform: translateX(-100%);
+      background-image: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0,
+        rgba(255, 255, 255, 0.4) 20%,
+        rgba(255, 255, 255, 0.6) 60%,
+        rgba(255, 255, 255, 0)
+      );
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    .skeleton-title {
+      height: 1.2rem;
+      margin-bottom: 0.5rem;
+      border: 2px solid var(--border-color);
+    }
+
     /* Controls & Pagination */
     .pagination-container {
       max-width: 1200px;
@@ -284,7 +322,22 @@
 
   <main>
     <div id="news-container" class="grid-container">
-      <div class="status-msg">Loading latest intelligence...</div>
+      <!-- Initial HTML state uses 12 skeleton cards for zero-flicker rendering -->
+      <script>
+        document.write(Array(12).fill(`
+          <article class="news-card skeleton-card">
+            <div class="card-image-wrapper skeleton-box"></div>
+            <div class="card-body">
+              <div class="card-meta">
+                <div class="skeleton-box" style="width: 70px; height: 18px; border: 2px solid #000;"></div>
+                <div class="skeleton-box" style="width: 50px; height: 14px;"></div>
+              </div>
+              <div class="skeleton-box skeleton-title" style="width: 90%;"></div>
+              <div class="skeleton-box skeleton-title" style="width: 60%;"></div>
+            </div>
+          </article>
+        `).join(''));
+      </script>
     </div>
 
     <div class="pagination-container">
@@ -304,7 +357,20 @@
       const container = document.getElementById('news-container');
       if (!container) return;
 
-      container.innerHTML = '<div class="status-msg">Loading intelligence feed...</div>';
+      // Maintain skeleton placeholders during load instead of collapsing to text
+      container.innerHTML = Array(12).fill(`
+        <article class="news-card skeleton-card">
+          <div class="card-image-wrapper skeleton-box"></div>
+          <div class="card-body">
+            <div class="card-meta">
+              <div class="skeleton-box" style="width: 70px; height: 18px; border: 2px solid #000;"></div>
+              <div class="skeleton-box" style="width: 50px; height: 14px;"></div>
+            </div>
+            <div class="skeleton-box skeleton-title" style="width: 90%;"></div>
+            <div class="skeleton-box skeleton-title" style="width: 60%;"></div>
+          </div>
+        </article>
+      `).join('');
 
       try {
         const response = await fetch(`${API_URL}?page=${page}&limit=12`);
