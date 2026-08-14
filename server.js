@@ -126,11 +126,10 @@ function getCardSource(item, feedTitle, articleLink) {
   return feedTitle ? feedTitle.replace(/"|-|Google|News|RSS|Feed|Latest/gi, '').trim().toUpperCase() : 'INTELLIGENCE';
 }
 
-// Background Ingestion Worker with Strict 14-Day Rules
+// Background Ingestion Worker
 async function runIngestionWorker() {
   console.log('[CRON] Scraping RSS feeds...');
 
-  // Calculate cutoff timestamp for 14 days ago
   const fourteenDaysAgo = new Date();
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
@@ -142,10 +141,7 @@ async function runIngestionWorker() {
         const item = feed.items[idx];
         const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
 
-        // 🛑 RULE 1: Do not fetch/insert if older than 14 days
-        if (pubDate < fourteenDaysAgo) {
-          continue;
-        }
+        if (pubDate < fourteenDaysAgo) continue;
 
         const guid = item.guid || item.link;
         const link = item.link || '#';
@@ -171,25 +167,29 @@ async function runIngestionWorker() {
     }
   }
 
-  // 🧹 RULE 2: Purge existing database entries older than 14 days
+  // Purge older than 14 days
   try {
     await pool.query("DELETE FROM articles WHERE published_at < NOW() - INTERVAL '14 days';");
-    console.log('[CRON] Purged articles older than 14 days.');
-  } catch (deleteErr) {
-    console.error('[CRON Delete Error]:', deleteErr.message);
-  }
+  } catch (deleteErr) {}
 }
 
-// Run every 15 minutes
 cron.schedule('*/15 * * * *', () => runIngestionWorker());
 runIngestionWorker();
 
 app.get('/', (req, res) => res.send('Server is live'));
 
-// Return ALL 14-day articles directly to frontend
+// Restored API Endpoint supporting BOTH Pagination OR Raw Array
 app.get('/api/news', async (req, res) => {
   try {
-    const articlesResult = await pool.query(`
+    const page = parseInt(req.query.page) || 1;
+    // Set limit per page (defaults to 12 or whatever req.query.limit sends, max cap 16)
+    const limit = parseInt(req.query.limit) || 12;
+    const offset = (page - 1) * limit;
+
+    const countResult = await pool.query('SELECT COUNT(*) FROM articles;');
+    const totalArticles = parseInt(countResult.rows[0].count, 10);
+
+    const articlesQuery = `
       SELECT 
         title, 
         link, 
@@ -197,10 +197,23 @@ app.get('/api/news', async (req, res) => {
         source, 
         image_url as image
       FROM articles
-      ORDER BY published_at DESC;
-    `);
+      ORDER BY published_at DESC
+      LIMIT $1 OFFSET $2;
+    `;
+    const articlesResult = await pool.query(articlesQuery, [limit, offset]);
 
-    res.json(articlesResult.rows);
+    // Checks how frontend requests data (paginated object vs direct array)
+    if (req.query.page || req.query.limit) {
+      res.json({
+        totalArticles,
+        totalPages: Math.ceil(totalArticles / limit) || 1,
+        currentPage: page,
+        articles: articlesResult.rows
+      });
+    } else {
+      // If frontend asks for plain array, cap it to limit (12/16)
+      res.json(articlesResult.rows.slice(0, limit));
+    }
   } catch (error) {
     console.error('[API Error]:', error.message);
     res.status(500).json({ error: 'Failed to retrieve news' });
