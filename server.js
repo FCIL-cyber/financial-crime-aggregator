@@ -18,7 +18,7 @@ const parser = new Parser({
 app.use(cors());
 const PORT = process.env.PORT || 3000;
 
-// Connect to Supabase Database
+// Connect to Supabase
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('localhost') 
@@ -26,7 +26,6 @@ const pool = new Pool({
     : { rejectUnauthorized: false }
 });
 
-// Create Table
 async function initDatabase() {
   try {
     await pool.query(`
@@ -65,6 +64,26 @@ const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80'
 ];
 
+// Smart fallback picker based on article headline
+function getTopicImage(title, index) {
+  const t = (title || '').toLowerCase();
+
+  // Court / Legal / Prosecution
+  if (t.includes('court') || t.includes('law') || t.includes('judge') || t.includes('prosecut') || t.includes('trial') || t.includes('clash')) {
+    return 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80';
+  }
+  // Finance / Treasury / Shell Companies / Banking
+  if (t.includes('bank') || t.includes('treasury') || t.includes('money') || t.includes('tax') || t.includes('finance') || t.includes('corporate') || t.includes('transparency act')) {
+    return 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80';
+  }
+  // Crime / Fraud / Corruption / Investigation
+  if (t.includes('crime') || t.includes('fraud') || t.includes('corrupt') || t.includes('investig') || t.includes('scheme') || t.includes('erases')) {
+    return 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=600&q=80';
+  }
+
+  return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
+}
+
 function getFeedImage(item, index) {
   if (item.mediaContent && item.mediaContent.$ && item.mediaContent.$.url) return item.mediaContent.$.url;
   if (item.mediaThumbnail && item.mediaThumbnail.$ && item.mediaThumbnail.$.url) return item.mediaThumbnail.$.url;
@@ -78,43 +97,18 @@ function getFeedImage(item, index) {
       if (imgSrc && imgSrc.startsWith('http')) return imgSrc;
     } catch (e) {}
   }
-  return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
-}
-
-// Check if image is a generic placeholder or Google logo
-function isPlaceholderImage(url) {
-  if (!url) return true;
-  if (FALLBACK_IMAGES.includes(url)) return true;
-  if (url.includes('googleusercontent.com') || url.includes('ggpht.com') || url.includes('news.google.com')) return true;
-  return false;
-}
-
-// Resolves Google News redirect URLs to the actual article page
-async function resolveRealUrl(googleUrl) {
-  if (!googleUrl.includes('news.google.com')) return googleUrl;
-  try {
-    const response = await axios.get(googleUrl, {
-      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
-      timeout: 4000,
-      maxRedirects: 5
-    });
-    return response.request.res.responseUrl || googleUrl;
-  } catch (e) {
-    return googleUrl;
-  }
+  return null;
 }
 
 async function fetchOgImage(url) {
   try {
-    const realUrl = await resolveRealUrl(url);
-    const { data } = await axios.get(realUrl, {
+    const { data } = await axios.get(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
       timeout: 4000
     });
     const $ = cheerio.load(data);
     return $('meta[property="og:image"]').attr('content') || 
-           $('meta[name="twitter:image"]').attr('content') || 
-           $('meta[property="og:image:secure_url"]').attr('content') || null;
+           $('meta[name="twitter:image"]').attr('content') || null;
   } catch (e) {
     return null;
   }
@@ -152,7 +146,7 @@ function getCardSource(item, feedTitle, articleLink) {
   return feedTitle ? feedTitle.replace(/"|-|Google|News|RSS|Feed|Latest/gi, '').trim().toUpperCase() : 'INTELLIGENCE';
 }
 
-// Background Ingestion Worker
+// Ingestion Worker
 async function runIngestionWorker() {
   console.log('[CRON] Scraping RSS feeds...');
 
@@ -176,15 +170,17 @@ async function runIngestionWorker() {
 
         let image = getFeedImage(item, idx);
 
-        // 🎯 FIX: Force scraping if image is missing OR is a Google News logo
-        if (isPlaceholderImage(image) && link) {
+        const isGoogle = link.includes('news.google.com') || (image && (image.includes('googleusercontent.com') || image.includes('ggpht.com')));
+
+        // Direct feed scraping logic
+        if (!isGoogle && (!image || FALLBACK_IMAGES.includes(image))) {
           const ogImg = await fetchOgImage(link);
-          if (ogImg) {
-            image = ogImg;
-          } else if (image.includes('google')) {
-            // Fall back to dark unspash image if scraping target site failed
-            image = FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length];
-          }
+          if (ogImg) image = ogImg;
+        }
+
+        // Handle Google links or missing images with topic-matched graphics
+        if (isGoogle || !image) {
+          image = getTopicImage(title, idx);
         }
 
         const insertQuery = `
@@ -199,7 +195,6 @@ async function runIngestionWorker() {
     }
   }
 
-  // Purge older than 14 days
   try {
     await pool.query("DELETE FROM articles WHERE published_at < NOW() - INTERVAL '14 days';");
   } catch (deleteErr) {}
@@ -248,6 +243,7 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
+// RESTORED: Debug route to inspect source breakdown
 app.get('/api/debug-sources', async (req, res) => {
   try {
     const result = await pool.query('SELECT source, COUNT(*) as count FROM articles GROUP BY source;');
