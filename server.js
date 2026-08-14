@@ -81,14 +81,33 @@ function getFeedImage(item, index) {
   return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 }
 
+// 🛠️ NEW HELPER: Resolves Google News redirect URLs to the actual article page
+async function resolveRealUrl(googleUrl) {
+  if (!googleUrl.includes('news.google.com')) return googleUrl;
+  try {
+    const response = await axios.get(googleUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+      timeout: 4000,
+      maxRedirects: 5
+    });
+    // Return final URL destination if redirected
+    return response.request.res.responseUrl || googleUrl;
+  } catch (e) {
+    return googleUrl;
+  }
+}
+
 async function fetchOgImage(url) {
   try {
-    const { data } = await axios.get(url, {
+    const realUrl = await resolveRealUrl(url);
+    const { data } = await axios.get(realUrl, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
-      timeout: 3000
+      timeout: 4000
     });
     const $ = cheerio.load(data);
-    return $('meta[property="og:image"]').attr('content') || $('meta[name="twitter:image"]').attr('content') || null;
+    return $('meta[property="og:image"]').attr('content') || 
+           $('meta[name="twitter:image"]').attr('content') || 
+           $('meta[property="og:image:secure_url"]').attr('content') || null;
   } catch (e) {
     return null;
   }
@@ -150,7 +169,8 @@ async function runIngestionWorker() {
 
         let image = getFeedImage(item, idx);
 
-        if (FALLBACK_IMAGES.includes(image) && link && !link.includes('news.google.com')) {
+        // Fetch real OG image (now works for Google News items as well)
+        if (FALLBACK_IMAGES.includes(image) && link) {
           const ogImg = await fetchOgImage(link);
           if (ogImg) image = ogImg;
         }
@@ -182,7 +202,6 @@ app.get('/', (req, res) => res.send('Server is live'));
 app.get('/api/news', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    // Set limit per page (defaults to 12 or whatever req.query.limit sends, max cap 16)
     const limit = parseInt(req.query.limit) || 12;
     const offset = (page - 1) * limit;
 
@@ -202,7 +221,6 @@ app.get('/api/news', async (req, res) => {
     `;
     const articlesResult = await pool.query(articlesQuery, [limit, offset]);
 
-    // Checks how frontend requests data (paginated object vs direct array)
     if (req.query.page || req.query.limit) {
       res.json({
         totalArticles,
@@ -211,7 +229,6 @@ app.get('/api/news', async (req, res) => {
         articles: articlesResult.rows
       });
     } else {
-      // If frontend asks for plain array, cap it to limit (12/16)
       res.json(articlesResult.rows.slice(0, limit));
     }
   } catch (error) {
