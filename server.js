@@ -6,11 +6,11 @@ const axios = require('axios');
 const cron = require('node-cron');
 const { Pool } = require('pg');
 
-const app = express();
 const parser = new Parser({
   timeout: 10000,
   headers: {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    // SEC requires declaring an App Name + Contact Email in the User-Agent header
+    'User-Agent': 'IntelligenceDashboard App admin@yourcompany.com',
     'Accept': 'application/rss+xml, application/xml, text/xml; q=0.1'
   }
 });
