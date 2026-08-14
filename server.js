@@ -2,35 +2,53 @@ const express = require('express');
 const Parser = require('rss-parser');
 const cors = require('cors');
 const cheerio = require('cheerio');
+const axios = require('axios');
+const cron = require('node-cron');
+const { Pool } = require('pg');
 
 const app = express();
-
-// Configured Parser with 10s timeout and Custom User-Agent to handle RSS bridges safely
 const parser = new Parser({
   timeout: 10000,
   headers: {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     'Accept': 'application/rss+xml, application/xml, text/xml; q=0.1'
-  },
-  customFields: {
-    item: [
-      ['media:content', 'mediaContent'],
-      ['media:thumbnail', 'mediaThumbnail'],
-      ['enclosure', 'enclosure'],
-      ['content:encoded', 'contentEncoded'],
-      ['dc:creator', 'dcCreator'],
-      ['author', 'author']
-    ]
   }
 });
 
-const PORT = process.env.PORT || 3000;
 app.use(cors());
 
-// Global Memory Cache variables
-let articleCache = [];
-let lastFetchTime = 0;
-const CACHE_DURATION = 15 * 60 * 1000; // 15 minutes in milliseconds
+const PORT = process.env.PORT || 3000;
+
+// Connect to Render Postgres Database
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('localhost') 
+    ? false 
+    : { rejectUnauthorized: false }
+});
+
+// Initialize Database Table on Server Launch
+async function initDatabase() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS articles (
+        id SERIAL PRIMARY KEY,
+        guid TEXT UNIQUE NOT NULL,
+        title TEXT NOT NULL,
+        link TEXT NOT NULL,
+        published_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        source TEXT NOT NULL,
+        image_url TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('[Database] Table "articles" checked/created successfully.');
+  } catch (err) {
+    console.error('[Database Init Error]:', err.message);
+  }
+}
+
+initDatabase();
 
 // Target Financial Crime & Investigative Reporting Feeds
 const FEED_URLS = [
@@ -52,12 +70,7 @@ const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80'
 ];
 
-// Health check route
-app.get('/', (req, res) => {
-  res.send('FCIL Aggregator API is running smoothly.');
-});
-
-// XML & HTML Image Extraction
+// Extract images from XML/HTML
 function getFeedImage(item, index) {
   if (item.mediaContent && item.mediaContent.$ && item.mediaContent.$.url) return item.mediaContent.$.url;
   if (item.mediaThumbnail && item.mediaThumbnail.$ && item.mediaThumbnail.$.url) return item.mediaThumbnail.$.url;
@@ -68,18 +81,28 @@ function getFeedImage(item, index) {
     try {
       const $ = cheerio.load(rawHtml);
       const imgSrc = $('img').first().attr('src');
-      if (imgSrc && imgSrc.startsWith('http')) {
-        return imgSrc;
-      }
-    } catch (e) {
-      // Ignore HTML parse errors and fall through
-    }
+      if (imgSrc && imgSrc.startsWith('http')) return imgSrc;
+    } catch (e) {}
   }
 
   return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 }
 
-// Brand Extraction via Article URL Domain & Feed Context
+// Scrape target page for OpenGraph image if missing
+async function fetchOgImage(url) {
+  try {
+    const { data } = await axios.get(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' },
+      timeout: 3000
+    });
+    const $ = cheerio.load(data);
+    return $('meta[property="og:image"]').attr('content') || $('meta[name="twitter:image"]').attr('content') || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// Determine clean Brand Source
 function getCardSource(item, feedTitle, articleLink) {
   try {
     const parsedUrl = new URL(articleLink);
@@ -87,7 +110,6 @@ function getCardSource(item, feedTitle, articleLink) {
     let parts = host.split('.');
     let brand = parts.length > 2 ? parts[parts.length - 2] : parts[0];
 
-    // Standard Direct Domain Mappings
     const brandMap = {
       'occrp': 'OCCRP',
       'icij': 'ICIJ',
@@ -102,116 +124,126 @@ function getCardSource(item, feedTitle, articleLink) {
       return brandMap[brand.toLowerCase()];
     }
 
-    // Handle Google News RSS feeds dynamically based on Feed Title or Item Source
     if (brand === 'google' || host.includes('google')) {
       const titleLower = (feedTitle || '').toLowerCase();
-      
-      if (titleLower.includes('thebureauinvestigates') || titleLower.includes('bureau')) {
-        return 'THE BUREAU';
-      }
-      if (titleLower.includes('transparency')) {
-        return 'TRANSPARENCY INT';
-      }
-      if (item.source && typeof item.source === 'string') {
-        return item.source.toUpperCase();
-      }
+      if (titleLower.includes('thebureauinvestigates') || titleLower.includes('bureau')) return 'THE BUREAU';
+      if (titleLower.includes('transparency')) return 'TRANSPARENCY INT';
+      if (item.source && typeof item.source === 'string') return item.source.toUpperCase();
     }
 
-    if (brand && brand !== 'google' && brand.length > 2) {
-      return brand.toUpperCase();
-    }
-  } catch (e) {
-    // Fall through if domain parsing fails
-  }
+    if (brand && brand !== 'google' && brand.length > 2) return brand.toUpperCase();
+  } catch (e) {}
 
   return feedTitle ? feedTitle.replace(/"|-|Google|News|RSS|Feed|Latest/gi, '').trim().toUpperCase() : 'INTELLIGENCE';
 }
 
-// In-Memory Scraping & Caching Engine
-async function refreshArticleCache() {
-  try {
-    console.log('Fetching updated intelligence feeds...');
-    const feedPromises = FEED_URLS.map(async (url) => {
-      try {
-        const feed = await parser.parseURL(url);
-        
-        return feed.items.map((item, idx) => ({
-          title: item.title,
-          link: item.link,
-          date: item.pubDate 
-            ? new Date(item.pubDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) 
-            : 'Recent',
-          rawDate: item.pubDate ? new Date(item.pubDate) : new Date(0),
-          source: getCardSource(item, feed.title, item.link),
-          image: getFeedImage(item, idx)
-        }));
-      } catch (err) {
-        console.error(`Error fetching feed [${url}]:`, err.message);
-        return [];
+// Background Worker: Ingest Feeds & Save to Postgres Database
+async function runIngestionWorker() {
+  console.log('[CRON] Starting background RSS ingestion...');
+
+  for (const url of FEED_URLS) {
+    try {
+      const feed = await parser.parseURL(url);
+
+      for (let idx = 0; idx < (feed.items || []).length; idx++) {
+        const item = feed.items[idx];
+        const guid = item.guid || item.link;
+        const link = item.link || '#';
+        const title = item.title || 'Untitled Article';
+        const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
+        const source = getCardSource(item, feed.title, link);
+
+        let image = getFeedImage(item, idx);
+
+        // If article got a generic fallback image and has a real link, try scraping its OG image
+        if (FALLBACK_IMAGES.includes(image) && link && !link.includes('news.google.com')) {
+          const ogImg = await fetchOgImage(link);
+          if (ogImg) image = ogImg;
+        }
+
+        // Insert into Database (ON CONFLICT DO NOTHING prevents duplicates)
+        const insertQuery = `
+          INSERT INTO articles (guid, title, link, published_at, source, image_url)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          ON CONFLICT (guid) DO NOTHING;
+        `;
+        await pool.query(insertQuery, [guid, title, link, pubDate, source, image]);
       }
-    });
+    } catch (err) {
+      console.error(`[CRON Error] ${url}:`, err.message);
+    }
+  }
 
-    const results = await Promise.all(feedPromises);
-    let allArticles = results.flat();
-
-    // 1. Keep only articles published within the last 14 days
-    const fourteenDaysAgo = new Date();
-    fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
-    allArticles = allArticles.filter(item => item.rawDate >= fourteenDaysAgo);
-
-    // 2. Sort chronologically (newest first)
-    allArticles.sort((a, b) => b.rawDate - a.rawDate);
-
-    // 3. Save to global memory cache
-    articleCache = allArticles;
-    lastFetchTime = Date.now();
-    console.log(`Cache successfully updated: ${articleCache.length} articles retained from past 14 days.`);
-  } catch (err) {
-    console.error('Error refreshing cache:', err.message);
+  // Delete articles older than 14 days to keep DB fast and clean
+  try {
+    await pool.query("DELETE FROM articles WHERE published_at < NOW() - INTERVAL '14 days';");
+    console.log('[CRON] Background ingestion complete. Old articles cleaned up.');
+  } catch (cleanupErr) {
+    console.error('[CRON Cleanup Error]:', cleanupErr.message);
   }
 }
 
-// Aggregated & Paginated API Endpoint
+// Schedule background worker every 15 minutes
+cron.schedule('*/15 * * * *', () => {
+  runIngestionWorker();
+});
+
+// Run once immediately when server launches
+runIngestionWorker();
+
+// Health Check
+app.get('/', (req, res) => {
+  res.send('FCIL Database Aggregator API is running smoothly.');
+});
+
+// Fast Frontend Endpoint (Reads straight from Postgres database!)
 app.get('/api/news', async (req, res) => {
   try {
-    // Fetch live feeds only if cache is empty or older than 15 minutes
-    if (!articleCache.length || (Date.now() - lastFetchTime > CACHE_DURATION)) {
-      await refreshArticleCache();
-    }
-
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 12;
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
+    const offset = (page - 1) * limit;
 
-    const paginatedArticles = articleCache.slice(startIndex, endIndex);
+    // Get total count
+    const countResult = await pool.query('SELECT COUNT(*) FROM articles;');
+    const totalArticles = parseInt(countResult.rows[0].count, 10);
+
+    // Get paginated articles
+    const articlesQuery = `
+      SELECT 
+        title, 
+        link, 
+        TO_CHAR(published_at, 'Mon DD, YYYY') as date, 
+        source, 
+        image_url as image
+      FROM articles
+      ORDER BY published_at DESC
+      LIMIT $1 OFFSET $2;
+    `;
+    const articlesResult = await pool.query(articlesQuery, [limit, offset]);
 
     res.json({
-      totalArticles: articleCache.length,
-      totalPages: Math.ceil(articleCache.length / limit),
+      totalArticles,
+      totalPages: Math.ceil(totalArticles / limit) || 1,
       currentPage: page,
-      articles: paginatedArticles
+      articles: articlesResult.rows
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to retrieve news' });
+    console.error('[API /api/news Error]:', error.message);
+    res.status(500).json({ error: 'Failed to retrieve news from database' });
   }
 });
 
-// Diagnostic Endpoint: Detailed Source Article Breakdown
+// Diagnostic Endpoint
 app.get('/api/debug-sources', async (req, res) => {
   try {
-    if (!articleCache.length || (Date.now() - lastFetchTime > CACHE_DURATION)) {
-      await refreshArticleCache();
-    }
-
-    const breakdown = articleCache.reduce((acc, article) => {
-      acc[article.source] = (acc[article.source] || 0) + 1;
-      return acc;
-    }, {});
+    const result = await pool.query('SELECT source, COUNT(*) as count FROM articles GROUP BY source;');
+    const breakdown = {};
+    result.rows.forEach(row => {
+      breakdown[row.source] = parseInt(row.count, 10);
+    });
 
     res.json({
-      lastFetchTime: new Date(lastFetchTime).toISOString(),
-      totalArticles: articleCache.length,
+      totalArticles: Object.values(breakdown).reduce((a, b) => a + b, 0),
       sourceBreakdown: breakdown
     });
   } catch (error) {
