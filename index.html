@@ -4,13 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Financial Crime & Regulatory Intelligence</title>
-  
-  <!-- Preconnect to Render API to eliminate SSL/TLS handshake delay -->
-  <link rel="dns-prefetch" href="https://financial-crime-intelligence-aggregator.onrender.com">
-  <link rel="preconnect" href="https://financial-crime-intelligence-aggregator.onrender.com" crossorigin>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <!-- rest of head code... -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
@@ -266,16 +259,13 @@
 
   <header>
     <div class="header-container">
-      <a href="index.html" class="brand-box" style="text-decoration: none; color: inherit;">
+      <div class="brand-box">
         <h1>Financial Crime Intelligence</h1>
-      </a>
-      <nav style="display: flex; gap: 0.75rem;">
-        <a href="index.html" class="nav-btn active" style="background-color: var(--accent-orange); color: #ffffff; border: 3px solid #000; box-shadow: 3px 3px 0px #000; padding: 0.5rem 1rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; text-decoration: none;">Live Feed</a>
-        <a href="about.html" class="nav-btn" style="background-color: #ffffff; color: #000000; border: 3px solid #000; box-shadow: 3px 3px 0px #000; padding: 0.5rem 1rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.85rem; text-transform: uppercase; text-decoration: none;">About</a>
-      </nav>
+      </div>
+      <div class="header-tag">Live Feed</div>
     </div>
   </header>
-  
+
   <main>
     <div id="news-container" class="grid-container">
       <div class="status-msg">Loading latest intelligence...</div>
@@ -288,94 +278,89 @@
     </div>
   </main>
 
-<script>
-  const API_URL = 'https://financial-crime-intelligence-aggregator.onrender.com/api/news';
-  const FALLBACK_IMG = 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80';
-  let currentPage = 1;
-  let totalPages = 1;
+  <script>
+    const API_URL = 'https://financial-crime-intelligence-aggregator.onrender.com/api/news';
+    const FALLBACK_IMG = 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80';
+    let currentPage = 1;
+    let totalPages = 1;
 
-  async function fetchNews(page = 1) {
-    const container = document.getElementById('news-container');
-    if (!container) return;
+    async function fetchNews(page = 1) {
+      const container = document.getElementById('news-container');
+      if (!container) return;
 
-    // ONLY show loading status if the container has no cards inside yet (first visit)
-    if (container.children.length === 0 || container.querySelector('.status-msg')) {
       container.innerHTML = '<div class="status-msg">Loading intelligence feed...</div>';
-    }
 
-    try {
-      const response = await fetch(`${API_URL}?page=${page}&limit=12`);
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+      try {
+        const response = await fetch(`${API_URL}?page=${page}&limit=12`);
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
-      const data = await response.json();
-      const articles = Array.isArray(data) ? data : (data.articles || []);
-      
-      currentPage = data.currentPage || 1;
-      totalPages = data.totalPages || 1;
+        const data = await response.json();
+        const articles = Array.isArray(data) ? data : (data.articles || []);
+        
+        currentPage = data.currentPage || 1;
+        totalPages = data.totalPages || 1;
 
-      if (articles.length === 0) {
-        container.innerHTML = '<div class="status-msg">No articles found in the last 14 days.</div>';
-        updatePaginationUI();
-        return;
-      }
+        if (articles.length === 0) {
+          container.innerHTML = '<div class="status-msg">No articles found in the last 14 days.</div>';
+          updatePaginationUI();
+          return;
+        }
 
-      // Build HTML fragment in memory first to prevent layout jumping
-      let newHtml = '';
-      articles.forEach(article => {
-        const imgSrc = article.image || FALLBACK_IMG;
-        newHtml += `
-          <article class="news-card">
-            <div class="card-image-wrapper">
-              <img class="card-image" 
-                   src="${imgSrc}" 
-                   alt="${article.title}" 
-                   loading="lazy" 
-                   onerror="this.onerror=null; this.src='${FALLBACK_IMG}';">
-            </div>
-            <div class="card-body">
-              <div class="card-meta">
-                <span class="source-tag">${article.source || 'INTELLIGENCE'}</span>
-                <span class="card-date">${article.date || 'Recent'}</span>
+        container.innerHTML = '';
+
+        articles.forEach(article => {
+          const imgSrc = article.image || FALLBACK_IMG;
+          
+          const card = `
+            <article class="news-card">
+              <div class="card-image-wrapper">
+                <img class="card-image" 
+                     src="${imgSrc}" 
+                     alt="${article.title}" 
+                     loading="lazy" 
+                     onerror="this.onerror=null; this.src='${FALLBACK_IMG}';">
               </div>
-              <h2 class="card-title">
-                <a href="${article.link}" target="_blank" rel="noopener noreferrer">${article.title}</a>
-              </h2>
-            </div>
-          </article>
-        `;
-      });
+              <div class="card-body">
+                <div class="card-meta">
+                  <span class="source-tag">${article.source || 'INTELLIGENCE'}</span>
+                  <span class="card-date">${article.date || 'Recent'}</span>
+                </div>
+                <h2 class="card-title">
+                  <a href="${article.link}" target="_blank" rel="noopener noreferrer">${article.title}</a>
+                </h2>
+              </div>
+            </article>
+          `;
+          container.insertAdjacentHTML('beforeend', card);
+        });
 
-      // Single fast DOM swap (eliminates flickering)
-      container.innerHTML = newHtml;
-      updatePaginationUI();
+        updatePaginationUI();
 
-    } catch (error) {
-      console.error('Error fetching news:', error);
-      if (container.children.length === 0 || container.querySelector('.status-msg')) {
+      } catch (error) {
+        console.error('Error fetching news:', error);
         container.innerHTML = `<div class="status-msg">Failed to load news: ${error.message}</div>`;
       }
     }
-  }
 
-  function updatePaginationUI() {
-    const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
-    const indicator = document.getElementById('page-indicator');
+    function updatePaginationUI() {
+      const prevBtn = document.getElementById('prev-btn');
+      const nextBtn = document.getElementById('next-btn');
+      const indicator = document.getElementById('page-indicator');
 
-    if (indicator) indicator.innerText = `Page ${currentPage} of ${totalPages}`;
-    if (prevBtn) prevBtn.disabled = (currentPage <= 1);
-    if (nextBtn) nextBtn.disabled = (currentPage >= totalPages);
-  }
-
-  function changePage(direction) {
-    const targetPage = currentPage + direction;
-    if (targetPage >= 1 && targetPage <= totalPages) {
-      fetchNews(targetPage);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (indicator) indicator.innerText = `Page ${currentPage} of ${totalPages}`;
+      if (prevBtn) prevBtn.disabled = (currentPage <= 1);
+      if (nextBtn) nextBtn.disabled = (currentPage >= totalPages);
     }
-  }
 
-  document.addEventListener('DOMContentLoaded', () => fetchNews(1));
-</script>
+    function changePage(direction) {
+      const targetPage = currentPage + direction;
+      if (targetPage >= 1 && targetPage <= totalPages) {
+        fetchNews(targetPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => fetchNews(1));
+  </script>
 </body>
 </html>
