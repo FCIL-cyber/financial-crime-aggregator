@@ -6,11 +6,11 @@ const axios = require('axios');
 const cron = require('node-cron');
 const { Pool } = require('pg');
 
+const app = express();
 const parser = new Parser({
   timeout: 10000,
   headers: {
-    // SEC requires declaring an App Name + Contact Email in the User-Agent header
-    'User-Agent': 'IntelligenceDashboard App admin@yourcompany.com',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     'Accept': 'application/rss+xml, application/xml, text/xml; q=0.1'
   }
 });
@@ -46,16 +46,21 @@ async function initDatabase() {
 }
 initDatabase();
 
+// Your exact requested feed list with SEC included
 const FEED_URLS = [
   'https://www.occrp.org/en/feed',
   'https://www.icij.org/feed/',
   'https://www.bellingcat.com/feed',
   'https://transparency.ie/taxonomy/term/5/feed',
   'https://fcil.substack.com/feed',
+  'https://taxjustice.net/feed/',
+  'https://www.pogo.org/feed',
+  'https://corporateeurope.org/en/rss.xml',
   'https://www.federalregister.gov/api/v1/documents.rss?conditions%5Bagencies%5D%5B%5D=financial-crimes-enforcement-network',
   'https://www.gov.uk/government/organisations/serious-fraud-office.atom',
   'https://www.gov.uk/government/organisations/national-crime-agency.atom',
-  'https://www.sec.gov/rss/news/press.xml'
+  'https://www.sec.gov/rss/news/press.xml',
+  'https://www.justice.gov/rss/opa/press-releases.xml'
 ];
 
 const FALLBACK_IMAGES = [
@@ -65,19 +70,15 @@ const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80'
 ];
 
-// Smart fallback picker based on article headline
 function getTopicImage(title, index) {
   const t = (title || '').toLowerCase();
 
-  // Court / Legal / Prosecution
   if (t.includes('court') || t.includes('law') || t.includes('judge') || t.includes('prosecut') || t.includes('trial') || t.includes('clash')) {
     return 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80';
   }
-  // Finance / Treasury / Shell Companies / Banking
   if (t.includes('bank') || t.includes('treasury') || t.includes('money') || t.includes('tax') || t.includes('finance') || t.includes('corporate') || t.includes('transparency act')) {
     return 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80';
   }
-  // Crime / Fraud / Corruption / Investigation
   if (t.includes('crime') || t.includes('fraud') || t.includes('corrupt') || t.includes('investig') || t.includes('scheme') || t.includes('erases')) {
     return 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=600&q=80';
   }
@@ -129,25 +130,24 @@ function getCardSource(item, feedTitle, articleLink) {
       'substack': 'FCIL SUBSTACK',
       'bellingcat': 'BELLINGCAT',
       'federalregister': 'FINCEN (FED REG)',
-      'thebureauinvestigates': 'THE BUREAU'
+      'gov': 'GOV.UK',
+      'sec': 'SEC (US)',
+      'justice': 'DOJ (US)',
+      'taxjustice': 'TAX JUSTICE NET',
+      'pogo': 'POGO',
+      'corporateeurope': 'CORP EUROPE OBS'
     };
 
-    if (brand !== 'google' && brandMap[brand.toLowerCase()]) return brandMap[brand.toLowerCase()];
+    if (brandMap[brand.toLowerCase()]) return brandMap[brand.toLowerCase()];
 
-    if (brand === 'google' || host.includes('google')) {
-      const titleLower = (feedTitle || '').toLowerCase();
-      if (titleLower.includes('thebureauinvestigates') || titleLower.includes('bureau')) return 'THE BUREAU';
-      if (titleLower.includes('transparency')) return 'TRANSPARENCY INT';
-      if (item.source && typeof item.source === 'string') return item.source.toUpperCase();
-    }
-
-    if (brand && brand !== 'google' && brand.length > 2) return brand.toUpperCase();
+    if (item.source && typeof item.source === 'string') return item.source.toUpperCase();
+    if (brand && brand.length > 2) return brand.toUpperCase();
   } catch (e) {}
 
   return feedTitle ? feedTitle.replace(/"|-|Google|News|RSS|Feed|Latest/gi, '').trim().toUpperCase() : 'INTELLIGENCE';
 }
 
-// Ingestion Worker
+// Ingestion Worker with custom SEC handler
 async function runIngestionWorker() {
   console.log('[CRON] Scraping RSS feeds...');
 
@@ -156,7 +156,21 @@ async function runIngestionWorker() {
 
   for (const url of FEED_URLS) {
     try {
-      const feed = await parser.parseURL(url);
+      let feed;
+
+      // Handle SEC specifically with mandated User-Agent format
+      if (url.includes('sec.gov')) {
+        const { data: xmlData } = await axios.get(url, {
+          headers: {
+            'User-Agent': 'FinancialCrimeDashboard admin@dashboardapp.com',
+            'Accept': 'application/xml, text/xml, */*'
+          },
+          timeout: 10000
+        });
+        feed = await parser.parseString(xmlData);
+      } else {
+        feed = await parser.parseURL(url);
+      }
 
       for (let idx = 0; idx < (feed.items || []).length; idx++) {
         const item = feed.items[idx];
@@ -171,16 +185,12 @@ async function runIngestionWorker() {
 
         let image = getFeedImage(item, idx);
 
-        const isGoogle = link.includes('news.google.com') || (image && (image.includes('googleusercontent.com') || image.includes('ggpht.com')));
-
-        // Direct feed scraping logic
-        if (!isGoogle && (!image || FALLBACK_IMAGES.includes(image))) {
+        if (!image && link && !url.includes('sec.gov')) {
           const ogImg = await fetchOgImage(link);
           if (ogImg) image = ogImg;
         }
 
-        // Handle Google links or missing images with topic-matched graphics
-        if (isGoogle || !image) {
+        if (!image) {
           image = getTopicImage(title, idx);
         }
 
@@ -244,7 +254,6 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
-// RESTORED: Debug route to inspect source breakdown
 app.get('/api/debug-sources', async (req, res) => {
   try {
     const result = await pool.query('SELECT source, COUNT(*) as count FROM articles GROUP BY source;');
