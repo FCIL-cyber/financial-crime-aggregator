@@ -57,20 +57,6 @@ app.get('/', (req, res) => {
   res.send('FCIL Aggregator API is running smoothly.');
 });
 
-// Fetch Open Graph image via Microlink for Google News or missing-image feeds
-async function fetchOgImage(articleUrl) {
-  try {
-    const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(articleUrl)}`);
-    const data = await res.json();
-    if (data && data.status === 'success' && data.data?.image?.url) {
-      return data.data.image.url;
-    }
-  } catch (e) {
-    // Fail quietly on network issues
-  }
-  return null;
-}
-
 // XML & HTML Image Extraction
 function getFeedImage(item, index) {
   if (item.mediaContent && item.mediaContent.$ && item.mediaContent.$.url) return item.mediaContent.$.url;
@@ -173,20 +159,10 @@ async function refreshArticleCache() {
     fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
     allArticles = allArticles.filter(item => item.rawDate >= fourteenDaysAgo);
 
-    // 2. Resolve missing images (e.g., Google News RSS) using Microlink OG metadata
-    await Promise.all(
-      allArticles.map(async (article) => {
-        if (FALLBACK_IMAGES.includes(article.image) && article.link) {
-          const ogImg = await fetchOgImage(article.link);
-          if (ogImg) article.image = ogImg;
-        }
-      })
-    );
-
-    // 3. Sort chronologically (newest first)
+    // 2. Sort chronologically (newest first)
     allArticles.sort((a, b) => b.rawDate - a.rawDate);
 
-    // 4. Save to global memory cache
+    // 3. Save to global memory cache
     articleCache = allArticles;
     lastFetchTime = Date.now();
     console.log(`Cache successfully updated: ${articleCache.length} articles retained from past 14 days.`);
