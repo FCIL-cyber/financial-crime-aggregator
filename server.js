@@ -220,4 +220,19 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
+// Debug route to inspect source breakdown
+app.get('/api/debug-sources', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT source, COUNT(*) as count FROM articles GROUP BY source;');
+    const breakdown = {};
+    result.rows.forEach(row => breakdown[row.source] = parseInt(row.count, 10));
+    res.json({ 
+      totalArticles: Object.values(breakdown).reduce((a, b) => a + b, 0), 
+      sourceBreakdown: breakdown 
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to inspect sources' });
+  }
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
