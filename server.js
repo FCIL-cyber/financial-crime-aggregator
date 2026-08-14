@@ -16,10 +16,9 @@ const parser = new Parser({
 });
 
 app.use(cors());
-
 const PORT = process.env.PORT || 3000;
 
-// Connect to Render Postgres Database
+// Connect to Supabase Database
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('localhost') 
@@ -27,7 +26,7 @@ const pool = new Pool({
     : { rejectUnauthorized: false }
 });
 
-// Initialize Database Table on Server Launch
+// Create Table
 async function initDatabase() {
   try {
     await pool.query(`
@@ -42,15 +41,12 @@ async function initDatabase() {
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    console.log('[Database] Table "articles" checked/created successfully.');
   } catch (err) {
-    console.error('[Database Init Error]:', err.message);
+    console.error('[DB Init Error]:', err.message);
   }
 }
-
 initDatabase();
 
-// Target Financial Crime & Investigative Reporting Feeds
 const FEED_URLS = [
   'https://www.occrp.org/en/feed',
   'https://www.icij.org/feed/',
@@ -62,7 +58,6 @@ const FEED_URLS = [
   'https://news.google.com/rss/search?q=site:thebureauinvestigates.com&hl=en-US&gl=US&ceid=US:en'
 ];
 
-// Fallback high-res stock images
 const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80',
   'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80',
@@ -70,7 +65,6 @@ const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80'
 ];
 
-// Extract images from XML/HTML
 function getFeedImage(item, index) {
   if (item.mediaContent && item.mediaContent.$ && item.mediaContent.$.url) return item.mediaContent.$.url;
   if (item.mediaThumbnail && item.mediaThumbnail.$ && item.mediaThumbnail.$.url) return item.mediaThumbnail.$.url;
@@ -84,11 +78,9 @@ function getFeedImage(item, index) {
       if (imgSrc && imgSrc.startsWith('http')) return imgSrc;
     } catch (e) {}
   }
-
   return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 }
 
-// Scrape target page for OpenGraph image if missing
 async function fetchOgImage(url) {
   try {
     const { data } = await axios.get(url, {
@@ -102,7 +94,6 @@ async function fetchOgImage(url) {
   }
 }
 
-// Determine clean Brand Source
 function getCardSource(item, feedTitle, articleLink) {
   try {
     const parsedUrl = new URL(articleLink);
@@ -120,9 +111,7 @@ function getCardSource(item, feedTitle, articleLink) {
       'thebureauinvestigates': 'THE BUREAU'
     };
 
-    if (brand !== 'google' && brandMap[brand.toLowerCase()]) {
-      return brandMap[brand.toLowerCase()];
-    }
+    if (brand !== 'google' && brandMap[brand.toLowerCase()]) return brandMap[brand.toLowerCase()];
 
     if (brand === 'google' || host.includes('google')) {
       const titleLower = (feedTitle || '').toLowerCase();
@@ -137,11 +126,11 @@ function getCardSource(item, feedTitle, articleLink) {
   return feedTitle ? feedTitle.replace(/"|-|Google|News|RSS|Feed|Latest/gi, '').trim().toUpperCase() : 'INTELLIGENCE';
 }
 
-// Background Worker: Ingest Feeds & Save to Postgres Database
+// Background Ingestion Worker with Strict 14-Day Rules
 async function runIngestionWorker() {
-  console.log('[CRON] Starting background RSS ingestion...');
+  console.log('[CRON] Scraping RSS feeds...');
 
-  // Define 14-day cutoff threshold
+  // Calculate cutoff timestamp for 14 days ago
   const fourteenDaysAgo = new Date();
   fourteenDaysAgo.setDate(fourteenDaysAgo.getDate() - 14);
 
@@ -153,9 +142,9 @@ async function runIngestionWorker() {
         const item = feed.items[idx];
         const pubDate = item.pubDate ? new Date(item.pubDate) : new Date();
 
-        // 🛑 SKIP ARTICLES OLDER THAN 14 DAYS IMMEDIATELY
+        // 🛑 RULE 1: Do not fetch/insert if older than 14 days
         if (pubDate < fourteenDaysAgo) {
-          continue; 
+          continue;
         }
 
         const guid = item.guid || item.link;
@@ -165,13 +154,11 @@ async function runIngestionWorker() {
 
         let image = getFeedImage(item, idx);
 
-        // If article got a generic fallback image and has a real link, try scraping its OG image
         if (FALLBACK_IMAGES.includes(image) && link && !link.includes('news.google.com')) {
           const ogImg = await fetchOgImage(link);
           if (ogImg) image = ogImg;
         }
 
-        // Insert into Database (ON CONFLICT DO NOTHING prevents duplicates)
         const insertQuery = `
           INSERT INTO articles (guid, title, link, published_at, source, image_url)
           VALUES ($1, $2, $3, $4, $5, $6)
@@ -184,50 +171,25 @@ async function runIngestionWorker() {
     }
   }
 
-  // Delete any lingering articles older than 14 days
+  // 🧹 RULE 2: Purge existing database entries older than 14 days
   try {
     await pool.query("DELETE FROM articles WHERE published_at < NOW() - INTERVAL '14 days';");
-    console.log('[CRON] Background ingestion complete. Old articles cleaned up.');
-  } catch (cleanupErr) {
-    console.error('[CRON Cleanup Error]:', cleanupErr.message);
+    console.log('[CRON] Purged articles older than 14 days.');
+  } catch (deleteErr) {
+    console.error('[CRON Delete Error]:', deleteErr.message);
   }
 }
 
-  // Delete articles older than 14 days to keep DB fast and clean
-  try {
-    await pool.query("DELETE FROM articles WHERE published_at < NOW() - INTERVAL '14 days';");
-    console.log('[CRON] Background ingestion complete. Old articles cleaned up.');
-  } catch (cleanupErr) {
-    console.error('[CRON Cleanup Error]:', cleanupErr.message);
-  }
-}
-
-// Schedule background worker every 15 minutes
-cron.schedule('*/15 * * * *', () => {
-  runIngestionWorker();
-});
-
-// Run once immediately when server launches
+// Run every 15 minutes
+cron.schedule('*/15 * * * *', () => runIngestionWorker());
 runIngestionWorker();
 
-// Health Check
-app.get('/', (req, res) => {
-  res.send('FCIL Database Aggregator API is running smoothly.');
-});
+app.get('/', (req, res) => res.send('Server is live'));
 
-// Fast Frontend Endpoint (Reads straight from Postgres database!)
+// Return ALL 14-day articles directly to frontend
 app.get('/api/news', async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 12;
-    const offset = (page - 1) * limit;
-
-    // Get total count
-    const countResult = await pool.query('SELECT COUNT(*) FROM articles;');
-    const totalArticles = parseInt(countResult.rows[0].count, 10);
-
-    // Get paginated articles
-    const articlesQuery = `
+    const articlesResult = await pool.query(`
       SELECT 
         title, 
         link, 
@@ -235,38 +197,13 @@ app.get('/api/news', async (req, res) => {
         source, 
         image_url as image
       FROM articles
-      ORDER BY published_at DESC
-      LIMIT $1 OFFSET $2;
-    `;
-    const articlesResult = await pool.query(articlesQuery, [limit, offset]);
+      ORDER BY published_at DESC;
+    `);
 
-    res.json({
-      totalArticles,
-      totalPages: Math.ceil(totalArticles / limit) || 1,
-      currentPage: page,
-      articles: articlesResult.rows
-    });
+    res.json(articlesResult.rows);
   } catch (error) {
-    console.error('[API /api/news Error]:', error.message);
-    res.status(500).json({ error: 'Failed to retrieve news from database' });
-  }
-});
-
-// Diagnostic Endpoint
-app.get('/api/debug-sources', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT source, COUNT(*) as count FROM articles GROUP BY source;');
-    const breakdown = {};
-    result.rows.forEach(row => {
-      breakdown[row.source] = parseInt(row.count, 10);
-    });
-
-    res.json({
-      totalArticles: Object.values(breakdown).reduce((a, b) => a + b, 0),
-      sourceBreakdown: breakdown
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to inspect sources' });
+    console.error('[API Error]:', error.message);
+    res.status(500).json({ error: 'Failed to retrieve news' });
   }
 });
 
