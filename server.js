@@ -81,7 +81,15 @@ function getFeedImage(item, index) {
   return FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 }
 
-// 🛠️ NEW HELPER: Resolves Google News redirect URLs to the actual article page
+// Check if image is a generic placeholder or Google logo
+function isPlaceholderImage(url) {
+  if (!url) return true;
+  if (FALLBACK_IMAGES.includes(url)) return true;
+  if (url.includes('googleusercontent.com') || url.includes('ggpht.com') || url.includes('news.google.com')) return true;
+  return false;
+}
+
+// Resolves Google News redirect URLs to the actual article page
 async function resolveRealUrl(googleUrl) {
   if (!googleUrl.includes('news.google.com')) return googleUrl;
   try {
@@ -90,7 +98,6 @@ async function resolveRealUrl(googleUrl) {
       timeout: 4000,
       maxRedirects: 5
     });
-    // Return final URL destination if redirected
     return response.request.res.responseUrl || googleUrl;
   } catch (e) {
     return googleUrl;
@@ -169,10 +176,15 @@ async function runIngestionWorker() {
 
         let image = getFeedImage(item, idx);
 
-        // Fetch real OG image (now works for Google News items as well)
-        if (FALLBACK_IMAGES.includes(image) && link) {
+        // 🎯 FIX: Force scraping if image is missing OR is a Google News logo
+        if (isPlaceholderImage(image) && link) {
           const ogImg = await fetchOgImage(link);
-          if (ogImg) image = ogImg;
+          if (ogImg) {
+            image = ogImg;
+          } else if (image.includes('google')) {
+            // Fall back to dark unspash image if scraping target site failed
+            image = FALLBACK_IMAGES[idx % FALLBACK_IMAGES.length];
+          }
         }
 
         const insertQuery = `
@@ -198,7 +210,6 @@ runIngestionWorker();
 
 app.get('/', (req, res) => res.send('Server is live'));
 
-// Restored API Endpoint supporting BOTH Pagination OR Raw Array
 app.get('/api/news', async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
@@ -237,7 +248,6 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
-// Debug route to inspect source breakdown
 app.get('/api/debug-sources', async (req, res) => {
   try {
     const result = await pool.query('SELECT source, COUNT(*) as count FROM articles GROUP BY source;');
