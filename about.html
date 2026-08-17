@@ -40,11 +40,11 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Header */
+    /* Base Brand & Header Styling */
     header {
       background-color: var(--bg-color);
       border-bottom: 3px solid var(--border-color);
-      padding: 1.5rem 2rem;
+      padding: 1.25rem 2rem;
       margin-bottom: 2.5rem;
     }
 
@@ -55,27 +55,65 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 1.25rem;
     }
 
-    .brand-box {
+    /* Bracketed Brand Badge */
+    .brand-logo-box {
       background-color: #ffffff;
       border: 3px solid var(--border-color);
       box-shadow: var(--shadow-hard);
-      padding: 0.6rem 1.25rem;
+      padding: 0.6rem 0.9rem;
       text-decoration: none;
-      color: inherit;
-      display: inline-block;
-    }
-
-    .brand-box h1 {
+      color: var(--text-main);
+      display: inline-flex;
+      flex-direction: column;
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.5rem;
       font-weight: 700;
-      letter-spacing: -0.02em;
+      line-height: 1.05;
       text-transform: uppercase;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
     }
 
+    .brand-logo-box:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 6px 6px 0px #000000;
+    }
+
+    .brand-line {
+      display: flex;
+      align-items: flex-start;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-bracket {
+      font-size: 1.45rem;
+      line-height: 0.85;
+    }
+
+    .brand-bracket.top {
+      margin-right: 2px;
+    }
+
+    .brand-indent {
+      padding-left: 14px;
+    }
+
+    .brand-bottom-line {
+      display: flex;
+      align-items: baseline;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-domain {
+      font-size: 0.85rem;
+      font-weight: 800;
+      margin-left: 1px;
+    }
+
+    /* Navigation Styling */
     nav {
       display: flex;
       gap: 0.75rem;
@@ -86,7 +124,7 @@
       color: #000000;
       border: 3px solid var(--border-color);
       box-shadow: 3px 3px 0px #000;
-      padding: 0.5rem 1rem;
+      padding: 0.6rem 1.1rem;
       font-family: 'Space Grotesk', sans-serif;
       font-weight: 700;
       font-size: 0.85rem;
@@ -139,20 +177,6 @@
 
     .content-link:hover {
       color: var(--accent-orange);
-    }
-
-    /* Compact Yellow Update Frequency Badge */
-    .frequency-badge-inline {
-      display: inline-block;
-      background-color: var(--accent-yellow);
-      border: 2px solid var(--border-color);
-      box-shadow: 2px 2px 0px #000000;
-      padding: 0.4rem 0.8rem;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      margin-top: 0.5rem;
     }
 
     /* Sources List */
@@ -227,16 +251,31 @@
     }
 
     .fcil-logo {
-      height: 65px; /* Enlarged for clear readability */
+      height: 65px;
       width: auto;
       display: block;
       object-fit: contain;
     }
 
     @media (max-width: 640px) {
-      header { padding: 1rem; }
-      .section-card { padding: 1.25rem; }
-      .source-grid { grid-template-columns: 1fr; }
+      header {
+        padding: 1rem;
+      }
+      .brand-line, .brand-bottom-line {
+        font-size: 1.15rem;
+      }
+      .brand-bracket {
+        font-size: 1.25rem;
+      }
+      .brand-domain {
+        font-size: 0.75rem;
+      }
+      .section-card {
+        padding: 1.25rem;
+      }
+      .source-grid {
+        grid-template-columns: 1fr;
+      }
       .created-by {
         flex-direction: column;
         padding: 1rem 1.25rem;
@@ -249,234 +288,6 @@
   </style>
 </head>
 <body>
-
-header {
-    background-color: var(--bg-color);
-    border-bottom: 3px solid var(--border-color);
-    padding: 1.25rem 2rem;
-    margin-bottom: 2.5rem;
-  }
-
-  .header-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-  }
-
-  /* Bracketed Brand Badge */
-  .brand-logo-box {
-    background-color: #ffffff;
-    border: 3px solid var(--border-color);
-    box-shadow: var(--shadow-hard);
-    padding: 0.6rem 0.9rem;
-    text-decoration: none;
-    color: var(--text-main);
-    display: inline-flex;
-    flex-direction: column;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    line-height: 1.05;
-    text-transform: uppercase;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
-  }
-
-  .brand-logo-box:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px #000000;
-  }
-
-  .brand-line {
-    display: flex;
-    align-items: flex-start;
-    font-size: 1.35rem;
-    letter-spacing: -0.02em;
-  }
-
-  .brand-bracket {
-    font-size: 1.45rem;
-    line-height: 0.85;
-  }
-
-  .brand-bracket.top {
-    margin-right: 2px;
-  }
-
-  .brand-indent {
-    padding-left: 14px;
-  }
-
-  .brand-bottom-line {
-    display: flex;
-    align-items: baseline;
-    font-size: 1.35rem;
-    letter-spacing: -0.02em;
-  }
-
-  .brand-domain {
-    font-size: 0.85rem;
-    font-weight: 800;
-    margin-left: 1px;
-  }
-
-  /* Navigation Styling */
-  nav {
-    display: flex;
-    gap: 0.75rem;
-  }
-
-  .nav-btn {
-    background-color: #ffffff;
-    color: #000000;
-    border: 3px solid var(--border-color);
-    box-shadow: 3px 3px 0px #000;
-    padding: 0.6rem 1.1rem;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: all 0.1s ease;
-  }
-
-  .nav-btn:hover, .nav-btn.active {
-    background-color: var(--accent-orange);
-    color: #ffffff;
-  }
-
-  @media (max-width: 640px) {
-    header {
-      padding: 1rem;
-    }
-    .brand-line, .brand-bottom-line {
-      font-size: 1.15rem;
-    }
-    .brand-bracket {
-      font-size: 1.25rem;
-    }
-    .brand-domain {
-      font-size: 0.75rem;
-    }
-  }
-</style>
-
-<style>
-  /* Base Brand & Header Styling */
-  header {
-    background-color: var(--bg-color);
-    border-bottom: 3px solid var(--border-color);
-    padding: 1.25rem 2rem;
-    margin-bottom: 2.5rem;
-  }
-
-  .header-container {
-    max-width: 1000px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-  }
-
-  /* Bracketed Brand Badge */
-  .brand-logo-box {
-    background-color: #ffffff;
-    border: 3px solid var(--border-color);
-    box-shadow: var(--shadow-hard);
-    padding: 0.6rem 0.9rem;
-    text-decoration: none;
-    color: var(--text-main);
-    display: inline-flex;
-    flex-direction: column;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    line-height: 1.05;
-    text-transform: uppercase;
-    transition: transform 0.1s ease, box-shadow 0.1s ease;
-  }
-
-  .brand-logo-box:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px #000000;
-  }
-
-  .brand-line {
-    display: flex;
-    align-items: flex-start;
-    font-size: 1.35rem;
-    letter-spacing: -0.02em;
-  }
-
-  .brand-bracket {
-    font-size: 1.45rem;
-    line-height: 0.85;
-  }
-
-  .brand-bracket.top {
-    margin-right: 2px;
-  }
-
-  .brand-indent {
-    padding-left: 14px;
-  }
-
-  .brand-bottom-line {
-    display: flex;
-    align-items: baseline;
-    font-size: 1.35rem;
-    letter-spacing: -0.02em;
-  }
-
-  .brand-domain {
-    font-size: 0.85rem;
-    font-weight: 800;
-    margin-left: 1px;
-  }
-
-  /* Navigation Styling */
-  nav {
-    display: flex;
-    gap: 0.75rem;
-  }
-
-  .nav-btn {
-    background-color: #ffffff;
-    color: #000000;
-    border: 3px solid var(--border-color);
-    box-shadow: 3px 3px 0px #000;
-    padding: 0.6rem 1.1rem;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    text-decoration: none;
-    transition: all 0.1s ease;
-  }
-
-  .nav-btn:hover, .nav-btn.active {
-    background-color: var(--accent-orange);
-    color: #ffffff;
-  }
-
-  @media (max-width: 640px) {
-    header {
-      padding: 1rem;
-    }
-    .brand-line, .brand-bottom-line {
-      font-size: 1.15rem;
-    }
-    .brand-bracket {
-      font-size: 1.25rem;
-    }
-    .brand-domain {
-      font-size: 0.75rem;
-    }
-  }
-</style>
 
 <header>
   <div class="header-container">
@@ -492,121 +303,117 @@ header {
       </div>
     </a>
     <nav>
-      <a href="index.html" class="nav-btn active">Live Feed</a>
-      <a href="about.html" class="nav-btn">About the project</a>
+      <a href="index.html" class="nav-btn">Live Feed</a>
+      <a href="about.html" class="nav-btn active">About the project</a>
     </nav>
   </div>
 </header>
 
-  <main>
-    <section class="section-card">
-      <h2 class="section-title">About the project</h2>
-      <p>
-        Financial Crime Intelligence aggregates real-time data on financial crime and its prevention, normalizing fragmented RSS and Atom feeds into a single unified stream.
-      </p>
-      <p>
-        Built for like-minded professionals who want to stay informed without getting flooded with noise.
-      </p>
-      <p>
-        This is a non-commercial, open-source project. If you have suggestions or want to connect, reach out to us on <a class="content-link" href="https://www.linkedin.com/company/the-financial-crime-intelligence-lab" target="_blank" rel="noopener">LinkedIn</a> or <a class="content-link" href="https://fcil.substack.com/" target="_blank" rel="noopener">Substack</a>.
-      </p>
+<main>
+  <section class="section-card">
+    <h2 class="section-title">About the project</h2>
+    <p>
+      Financial Crime Intelligence aggregates real-time data on financial crime and its prevention, normalizing fragmented RSS and Atom feeds into a single unified stream.
+    </p>
+    <p>
+      Built for like-minded professionals who want to stay informed without getting flooded with noise.
+    </p>
+    <p>
+      This is a non-commercial, open-source project. If you have suggestions or want to connect, reach out to us on <a class="content-link" href="https://www.linkedin.com/company/the-financial-crime-intelligence-lab" target="_blank" rel="noopener">LinkedIn</a> or <a class="content-link" href="https://fcil.substack.com/" target="_blank" rel="noopener">Substack</a>.
+    </p>
+  </section>
 
-      <div class="frequency-badge-inline">
-        ⚡ Feeds automatically update every 15 minutes
+  <section class="section-card">
+    <h2 class="section-title">Monitored Intelligence Sources</h2>
+
+    <div class="source-category">Law Enforcement & Prosecutors</div>
+    <div class="source-grid">
+      <div class="source-item">
+        <div class="source-name">U.S. Department of Justice (DOJ)</div>
+        <a class="source-url" href="https://www.justice.gov" target="_blank" rel="noopener">justice.gov (Press Releases)</a>
       </div>
-    </section>
-
-    <section class="section-card">
-      <h2 class="section-title">Monitored Intelligence Sources</h2>
-
-      <div class="source-category">Law Enforcement & Prosecutors</div>
-      <div class="source-grid">
-        <div class="source-item">
-          <div class="source-name">U.S. Department of Justice (DOJ)</div>
-          <a class="source-url" href="https://www.justice.gov" target="_blank" rel="noopener">justice.gov (Press Releases)</a>
-        </div>
-        <div class="source-item">
-          <div class="source-name">European Public Prosecutor's Office (EPPO)</div>
-          <a class="source-url" href="https://www.eppo.europa.eu" target="_blank" rel="noopener">eppo.europa.eu</a>
-        </div>
-        <div class="source-item">
-          <div class="source-name">Europol</div>
-          <a class="source-url" href="https://www.europol.europa.eu" target="_blank" rel="noopener">europol.europa.eu</a>
-        </div>
-        <div class="source-item">
-          <div class="source-name">Eurojust</div>
-          <a class="source-url" href="https://www.eurojust.europa.eu" target="_blank" rel="noopener">eurojust.europa.eu (Press & Publications)</a>
-        </div>
-        <div class="source-item">
-          <div class="source-name">UK Serious Fraud Office (SFO)</div>
-          <a class="source-url" href="https://www.gov.uk/sfo" target="_blank" rel="noopener">gov.uk/sfo</a>
-        </div>
-        <div class="source-item">
-          <div class="source-name">UK National Crime Agency (NCA)</div>
-          <a class="source-url" href="https://www.nationalcrimeagency.gov.uk" target="_blank" rel="noopener">nationalcrimeagency.gov.uk</a>
-        </div>
+      <div class="source-item">
+        <div class="source-name">European Public Prosecutor's Office (EPPO)</div>
+        <a class="source-url" href="https://www.eppo.europa.eu" target="_blank" rel="noopener">eppo.europa.eu</a>
       </div>
-
-      <div class="source-category">Regulatory & Financial Intelligence Units</div>
-      <div class="source-grid">
-        <div class="source-item">
-          <div class="source-name">FinCEN (U.S. Treasury)</div>
-          <a class="source-url" href="https://www.fincen.gov" target="_blank" rel="noopener">federalregister.gov (FinCEN Notices)</a>
-        </div>
-        <div class="source-item">
-          <div class="source-name">U.S. Securities and Exchange Commission (SEC)</div>
-          <a class="source-url" href="https://www.sec.gov" target="_blank" rel="noopener">sec.gov (Press Releases)</a>
-        </div>
+      <div class="source-item">
+        <div class="source-name">Europol</div>
+        <a class="source-url" href="https://www.europol.europa.eu" target="_blank" rel="noopener">europol.europa.eu</a>
       </div>
-
-      <div class="source-category">Investigative Journalism & Non-Profits</div>
-      <div class="source-grid">
-        <div class="source-item">
-          <div class="source-name">OCCRP</div>
-          <a class="source-url" href="https://www.occrp.org" target="_blank" rel="noopener">occrp.org</a>
-        </div>
-        <div class="source-item">
-          <div class="source-name">ICIJ</div>
-          <a class="source-url" href="https://www.icij.org" target="_blank" rel="noopener">icij.org</a>
-        </div>
-        <div class="source-item">
-          <div class="source-name">Bellingcat</div>
-          <a class="source-url" href="https://www.bellingcat.com" target="_blank" rel="noopener">bellingcat.com</a>
-        </div>
-        <div class="source-item">
-          <div class="source-name">Investigate Europe</div>
-          <a class="source-url" href="https://www.investigate-europe.eu" target="_blank" rel="noopener">investigate-europe.eu</a>
-        </div>
-        <div class="source-item">
-          <div class="source-name">Tax Justice Network</div>
-          <a class="source-url" href="https://taxjustice.net" target="_blank" rel="noopener">taxjustice.net</a>
-        </div>
-        <div class="source-item">
-          <div class="source-name">Corporate Europe Observatory</div>
-          <a class="source-url" href="https://corporateeurope.org" target="_blank" rel="noopener">corporateeurope.org</a>
-        </div>
-        <div class="source-item">
-          <div class="source-name">Transparency International Ireland</div>
-          <a class="source-url" href="https://transparency.ie" target="_blank" rel="noopener">transparency.ie</a>
-        </div>
+      <div class="source-item">
+        <div class="source-name">Eurojust</div>
+        <a class="source-url" href="https://www.eurojust.europa.eu" target="_blank" rel="noopener">eurojust.europa.eu (Press & Publications)</a>
       </div>
-
-      <div class="source-category">Financial Crime Blogs</div>
-      <div class="source-grid">
-        <div class="source-item">
-          <div class="source-name">Financial Crime Intelligence Lab</div>
-          <a class="source-url" href="https://fcil.substack.com" target="_blank" rel="noopener">fcil.substack.com</a>
-        </div>
+      <div class="source-item">
+        <div class="source-name">UK Serious Fraud Office (SFO)</div>
+        <a class="source-url" href="https://www.gov.uk/sfo" target="_blank" rel="noopener">gov.uk/sfo</a>
       </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="created-by">
-      <span>Created by</span>
-      <img src="fcil-logo.png" alt="Financial Crime Intelligence Lab Logo" class="fcil-logo">
+      <div class="source-item">
+        <div class="source-name">UK National Crime Agency (NCA)</div>
+        <a class="source-url" href="https://www.nationalcrimeagency.gov.uk" target="_blank" rel="noopener">nationalcrimeagency.gov.uk</a>
+      </div>
     </div>
-  </footer>
+
+    <div class="source-category">Regulatory & Financial Intelligence Units</div>
+    <div class="source-grid">
+      <div class="source-item">
+        <div class="source-name">FinCEN (U.S. Treasury)</div>
+        <a class="source-url" href="https://www.fincen.gov" target="_blank" rel="noopener">federalregister.gov (FinCEN Notices)</a>
+      </div>
+      <div class="source-item">
+        <div class="source-name">U.S. Securities and Exchange Commission (SEC)</div>
+        <a class="source-url" href="https://www.sec.gov" target="_blank" rel="noopener">sec.gov (Press Releases)</a>
+      </div>
+    </div>
+
+    <div class="source-category">Investigative Journalism & Non-Profits</div>
+    <div class="source-grid">
+      <div class="source-item">
+        <div class="source-name">OCCRP</div>
+        <a class="source-url" href="https://www.occrp.org" target="_blank" rel="noopener">occrp.org</a>
+      </div>
+      <div class="source-item">
+        <div class="source-name">ICIJ</div>
+        <a class="source-url" href="https://www.icij.org" target="_blank" rel="noopener">icij.org</a>
+      </div>
+      <div class="source-item">
+        <div class="source-name">Bellingcat</div>
+        <a class="source-url" href="https://www.bellingcat.com" target="_blank" rel="noopener">bellingcat.com</a>
+      </div>
+      <div class="source-item">
+        <div class="source-name">Investigate Europe</div>
+        <a class="source-url" href="https://www.investigate-europe.eu" target="_blank" rel="noopener">investigate-europe.eu</a>
+      </div>
+      <div class="source-item">
+        <div class="source-name">Tax Justice Network</div>
+        <a class="source-url" href="https://taxjustice.net" target="_blank" rel="noopener">taxjustice.net</a>
+      </div>
+      <div class="source-item">
+        <div class="source-name">Corporate Europe Observatory</div>
+        <a class="source-url" href="https://corporateeurope.org" target="_blank" rel="noopener">corporateeurope.org</a>
+      </div>
+      <div class="source-item">
+        <div class="source-name">Transparency International Ireland</div>
+        <a class="source-url" href="https://transparency.ie" target="_blank" rel="noopener">transparency.ie</a>
+      </div>
+    </div>
+
+    <div class="source-category">Financial Crime Blogs</div>
+    <div class="source-grid">
+      <div class="source-item">
+        <div class="source-name">Financial Crime Intelligence Lab</div>
+        <a class="source-url" href="https://fcil.substack.com" target="_blank" rel="noopener">fcil.substack.com</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="created-by">
+    <span>Created by</span>
+    <img src="fcil-logo.png" alt="Financial Crime Intelligence Lab Logo" class="fcil-logo">
+  </div>
+</footer>
 
 </body>
 </html>
