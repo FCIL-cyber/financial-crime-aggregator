@@ -59,7 +59,7 @@ const FEED_URLS = [
   'https://www.gov.uk/government/organisations/serious-fraud-office.atom',
   'https://www.gov.uk/government/organisations/national-crime-agency.atom',
   'https://www.sec.gov/rss/news/press.xml',
-  // 🚀 NEW FEEDS ADDED
+  // Added on 17-08-2026
   'https://news.google.com/rss/search?q=site:justice.gov+press+releases&hl=en-US&gl=US&ceid=US:en',
   'https://www.eppo.europa.eu/node/2/rss_en',
   'https://www.europol.europa.eu/cms/api/rss/news',
@@ -197,6 +197,18 @@ async function runIngestionWorker() {
         const link = item.link || '#';
         const title = item.title || 'Untitled Article';
         const source = getCardSource(item, feed.title, link);
+
+        // 🎯 KEYWORD FILTER: Filter DOJ articles to keep only financial crime cases
+        const isDoj = url.includes('justice.gov') || source === 'DOJ (US)';
+        if (isDoj) {
+          const titleUpper = title.toUpperCase();
+          const hasKeyword = titleUpper.includes('$') || 
+                             titleUpper.includes('FRAUD') || 
+                             titleUpper.includes('LAUNDERING');
+
+          // Skip DOJ articles that don't match our core criteria
+          if (!hasKeyword) continue;
+        }
 
         let image = getFeedImage(item, idx);
 
