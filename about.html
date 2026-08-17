@@ -131,6 +131,45 @@
       margin-bottom: 1rem;
     }
 
+    .content-link {
+      color: var(--text-main);
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    .content-link:hover {
+      color: var(--accent-orange);
+    }
+
+    /* Update Frequency Callout Box */
+    .frequency-box {
+      background-color: var(--accent-yellow);
+      border: 3px solid var(--border-color);
+      box-shadow: var(--shadow-hard);
+      padding: 1rem 1.25rem;
+      margin-top: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .frequency-badge {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      background-color: #000000;
+      color: #ffffff;
+      padding: 0.25rem 0.5rem;
+      white-space: nowrap;
+    }
+
+    .frequency-text {
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 0;
+    }
+
     /* Sources List */
     .source-category {
       font-family: 'Space Grotesk', sans-serif;
@@ -178,10 +217,43 @@
       color: var(--accent-orange);
     }
 
+    /* Footer / Attribution */
+    footer {
+      max-width: 1000px;
+      margin: 2rem auto 0 auto;
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .created-by {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      background-color: #ffffff;
+      border: 3px solid var(--border-color);
+      box-shadow: var(--shadow-hard);
+      padding: 0.6rem 1.25rem;
+    }
+
+    .fcil-logo {
+      height: 32px;
+      width: auto;
+      display: block;
+      /* Ensures crisp rendering for logo graphics */
+      object-fit: contain;
+    }
+
     @media (max-width: 640px) {
       header { padding: 1rem; }
       .section-card { padding: 1.25rem; }
       .source-grid { grid-template-columns: 1fr; }
+      .frequency-box { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -194,20 +266,28 @@
       </a>
       <nav>
         <a href="index.html" class="nav-btn">Live Feed</a>
-        <a href="about.html" class="nav-btn active">About</a>
+        <a href="about.html" class="nav-btn active">About the project</a>
       </nav>
     </div>
   </header>
 
   <main>
     <section class="section-card">
-      <h2 class="section-title">Project Mission</h2>
+      <h2 class="section-title">About the project</h2>
       <p>
-        <strong>Financial Crime Intelligence</strong> aggregates real-time enforcement actions, legal filings, and investigative reports across international regulatory bodies, law enforcement agencies, and investigative newsrooms.
+        Financial Crime Intelligence aggregates selected sources of real-time intelligence associated with financial crime and its prevention by normalizing fragmented RSS and Atom feeds into a single unified stream.
       </p>
       <p>
-        Designed for anti-money laundering (AML) auditors, compliance officers, and financial crime specialists, this platform normalizes fragmented RSS and Atom feeds into a single unified stream.
+        Designed for like minded professionals who want to up to date with current affairs but do not want to be flooded with information
       </p>
+      <p>
+        This is an open-source project. We do not and have no intention of monetizing it. If you have an suggestion or just want to chat, hit us up on <a class="content-link" href="https://www.linkedin.com/company/the-financial-crime-intelligence-lab" target="_blank" rel="noopener">LinkedIn</a> or <a class="content-link" href="https://fcil.substack.com/" target="_blank" rel="noopener">Substack</a>.
+      </p>
+
+      <div class="frequency-box">
+        <span class="frequency-badge">Update Frequency</span>
+        <p class="frequency-text">Feeds are automatically polled and updated every 30 minutes.</p>
+      </div>
     </section>
 
     <section class="section-card">
@@ -283,6 +363,10 @@
           <div class="source-name">Transparency International Ireland</div>
           <a class="source-url" href="https://transparency.ie" target="_blank" rel="noopener">transparency.ie</a>
         </div>
+      </div>
+
+      <div class="source-category">Financial Crime Blogs</div>
+      <div class="source-grid">
         <div class="source-item">
           <div class="source-name">Financial Crime Intelligence Lab</div>
           <a class="source-url" href="https://fcil.substack.com" target="_blank" rel="noopener">fcil.substack.com</a>
@@ -290,6 +374,13 @@
       </div>
     </section>
   </main>
+
+  <footer>
+    <div class="created-by">
+      <span>Created by</span>
+      <img src="fcil-logo.png" alt="Financial Crime Intelligence Lab Logo" class="fcil-logo">
+    </div>
+  </footer>
 
 </body>
 </html>
