@@ -11,7 +11,6 @@
   <style>
     :root {
       --bg-color: #f4f4f0;
-      --header-bg: #f4f4f0;
       --card-bg: #ffffff;
       --text-main: #000000;
       --accent-orange: #ff5500;
@@ -36,20 +35,21 @@
         linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
       background-size: 24px 24px;
       color: var(--text-main);
-      padding-bottom: 3rem;
+      padding-bottom: 4rem;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
+    /* Header */
     header {
-      background-color: var(--header-bg);
+      background-color: var(--bg-color);
       border-bottom: 3px solid var(--border-color);
       padding: 1.5rem 2rem;
       margin-bottom: 2.5rem;
     }
 
     .header-container {
-      max-width: 1200px;
+      max-width: 1000px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
@@ -65,6 +65,7 @@
       padding: 0.6rem 1.25rem;
       text-decoration: none;
       color: inherit;
+      display: inline-block;
     }
 
     .brand-box h1 {
@@ -99,48 +100,88 @@
       color: #ffffff;
     }
 
-    .content-container {
-      max-width: 800px;
+    /* Main Container */
+    main {
+      max-width: 1000px;
       margin: 0 auto;
       padding: 0 1rem;
     }
 
-    .about-card {
+    .section-card {
       background-color: var(--card-bg);
       border: 3px solid var(--border-color);
       box-shadow: var(--shadow-hard-lg);
       padding: 2rem;
+      margin-bottom: 2rem;
     }
 
-    .about-card h2 {
+    .section-title {
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 1.8rem;
-      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      font-weight: 700;
       text-transform: uppercase;
+      margin-bottom: 1.25rem;
       border-bottom: 3px solid var(--border-color);
       padding-bottom: 0.5rem;
     }
 
-    .about-card p {
+    p {
       line-height: 1.6;
-      margin-bottom: 1.25rem;
-      font-size: 1rem;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
     }
 
-    .about-card ul {
-      margin-left: 1.5rem;
-      margin-bottom: 1.5rem;
-      line-height: 1.6;
-    }
-
-    .tag-badge {
-      display: inline-block;
+    /* Sources List */
+    .source-category {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin: 1.5rem 0 0.75rem 0;
       background-color: var(--accent-yellow);
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
       border: 2px solid var(--border-color);
-      padding: 0.2rem 0.5rem;
-      font-weight: 800;
-      font-size: 0.8rem;
       box-shadow: 2px 2px 0px #000;
+    }
+
+    .source-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .source-item {
+      border: 2px solid var(--border-color);
+      padding: 0.75rem 1rem;
+      background-color: #fafafa;
+      box-shadow: 2px 2px 0px #000;
+    }
+
+    .source-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .source-url {
+      font-size: 0.75rem;
+      color: #555;
+      word-break: break-all;
+      text-decoration: none;
+    }
+
+    .source-url:hover {
+      text-decoration: underline;
+      color: var(--accent-orange);
+    }
+
+    @media (max-width: 640px) {
+      header { padding: 1rem; }
+      .section-card { padding: 1.25rem; }
+      .source-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -159,23 +200,95 @@
   </header>
 
   <main>
-    <div class="content-container">
-      <article class="about-card">
-        <h2>About The Project</h2>
-        <p>This aggregator provides real-time financial crime, sanctions, and regulatory intelligence gathered directly from key investigative newsrooms and government bodies.</p>
-        
-        <p>Instead of relying on automated noise, this platform curates high-value updates from dedicated investigative outlets and official registers, including:</p>
-        
-        <ul>
-          <li><strong>OCCRP & ICIJ:</strong> Global investigative reporting on money laundering and transnational corruption.</li>
-          <li><strong>FinCEN (Federal Register):</strong> Official U.S. treasury advisories, rulemakings, and GTOs.</li>
-          <li><strong>Bellingcat:</strong> Open-source intelligence and asset tracking.</li>
-          <li><strong>Transparency International & LSM:</strong> European regional integrity and compliance news.</li>
-        </ul>
+    <section class="section-card">
+      <h2 class="section-title">Project Mission</h2>
+      <p>
+        <strong>Financial Crime Intelligence</strong> aggregates real-time enforcement actions, legal filings, and investigative reports across international regulatory bodies, law enforcement agencies, and investigative newsrooms.
+      </p>
+      <p>
+        Designed for anti-money laundering (AML) auditors, compliance officers, and financial crime specialists, this platform normalizes fragmented RSS and Atom feeds into a single unified stream.
+      </p>
+    </section>
 
-        <p><span class="tag-badge">UPDATE FREQUENCY</span> Feeds refresh every 15 minutes to display verified intelligence from the past 14 days.</p>
-      </article>
-    </div>
+    <section class="section-card">
+      <h2 class="section-title">Monitored Intelligence Sources</h2>
+
+      <div class="source-category">Law Enforcement & Prosecutors</div>
+      <div class="source-grid">
+        <div class="source-item">
+          <div class="source-name">U.S. Department of Justice (DOJ)</div>
+          <a class="source-url" href="https://www.justice.gov" target="_blank" rel="noopener">justice.gov (Press Releases)</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">European Public Prosecutor's Office (EPPO)</div>
+          <a class="source-url" href="https://www.eppo.europa.eu" target="_blank" rel="noopener">eppo.europa.eu</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">Europol</div>
+          <a class="source-url" href="https://www.europol.europa.eu" target="_blank" rel="noopener">europol.europa.eu</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">Eurojust</div>
+          <a class="source-url" href="https://www.eurojust.europa.eu" target="_blank" rel="noopener">eurojust.europa.eu (Press & Publications)</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">UK Serious Fraud Office (SFO)</div>
+          <a class="source-url" href="https://www.gov.uk/sfo" target="_blank" rel="noopener">gov.uk/sfo</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">UK National Crime Agency (NCA)</div>
+          <a class="source-url" href="https://www.nationalcrimeagency.gov.uk" target="_blank" rel="noopener">nationalcrimeagency.gov.uk</a>
+        </div>
+      </div>
+
+      <div class="source-category">Regulatory & Financial Intelligence Units</div>
+      <div class="source-grid">
+        <div class="source-item">
+          <div class="source-name">FinCEN (U.S. Treasury)</div>
+          <a class="source-url" href="https://www.fincen.gov" target="_blank" rel="noopener">federalregister.gov (FinCEN Notices)</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">U.S. Securities and Exchange Commission (SEC)</div>
+          <a class="source-url" href="https://www.sec.gov" target="_blank" rel="noopener">sec.gov (Press Releases)</a>
+        </div>
+      </div>
+
+      <div class="source-category">Investigative Journalism & Non-Profits</div>
+      <div class="source-grid">
+        <div class="source-item">
+          <div class="source-name">OCCRP</div>
+          <a class="source-url" href="https://www.occrp.org" target="_blank" rel="noopener">occrp.org</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">ICIJ</div>
+          <a class="source-url" href="https://www.icij.org" target="_blank" rel="noopener">icij.org</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">Bellingcat</div>
+          <a class="source-url" href="https://www.bellingcat.com" target="_blank" rel="noopener">bellingcat.com</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">Investigate Europe</div>
+          <a class="source-url" href="https://www.investigate-europe.eu" target="_blank" rel="noopener">investigate-europe.eu</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">Tax Justice Network</div>
+          <a class="source-url" href="https://taxjustice.net" target="_blank" rel="noopener">taxjustice.net</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">Corporate Europe Observatory</div>
+          <a class="source-url" href="https://corporateeurope.org" target="_blank" rel="noopener">corporateeurope.org</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">Transparency International Ireland</div>
+          <a class="source-url" href="https://transparency.ie" target="_blank" rel="noopener">transparency.ie</a>
+        </div>
+        <div class="source-item">
+          <div class="source-name">Financial Crime Intelligence Lab</div>
+          <a class="source-url" href="https://fcil.substack.com" target="_blank" rel="noopener">fcil.substack.com</a>
+        </div>
+      </div>
+    </section>
   </main>
 
 </body>
