@@ -141,33 +141,18 @@
       color: var(--accent-orange);
     }
 
-    /* Update Frequency Callout Box */
-    .frequency-box {
+    /* Compact Yellow Update Frequency Badge */
+    .frequency-badge-inline {
+      display: inline-block;
       background-color: var(--accent-yellow);
-      border: 3px solid var(--border-color);
-      box-shadow: var(--shadow-hard);
-      padding: 1rem 1.25rem;
-      margin-top: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .frequency-badge {
+      border: 2px solid var(--border-color);
+      box-shadow: 2px 2px 0px #000000;
+      padding: 0.4rem 0.8rem;
       font-family: 'Space Grotesk', sans-serif;
+      font-size: 0.85rem;
       font-weight: 700;
-      font-size: 0.8rem;
       text-transform: uppercase;
-      background-color: #000000;
-      color: #ffffff;
-      padding: 0.25rem 0.5rem;
-      white-space: nowrap;
-    }
-
-    .frequency-text {
-      font-weight: 700;
-      font-size: 0.9rem;
-      margin-bottom: 0;
+      margin-top: 0.5rem;
     }
 
     /* Sources List */
@@ -217,10 +202,10 @@
       color: var(--accent-orange);
     }
 
-    /* Footer / Attribution */
+    /* Footer / Prominent Attribution */
     footer {
       max-width: 1000px;
-      margin: 2rem auto 0 auto;
+      margin: 3rem auto 0 auto;
       padding: 1rem;
       display: flex;
       justify-content: center;
@@ -230,22 +215,21 @@
     .created-by {
       display: flex;
       align-items: center;
-      gap: 0.75rem;
+      gap: 1.25rem;
       font-family: 'Space Grotesk', sans-serif;
-      font-size: 0.95rem;
+      font-size: 1.1rem;
       font-weight: 700;
       text-transform: uppercase;
       background-color: #ffffff;
       border: 3px solid var(--border-color);
-      box-shadow: var(--shadow-hard);
-      padding: 0.6rem 1.25rem;
+      box-shadow: var(--shadow-hard-lg);
+      padding: 1rem 2rem;
     }
 
     .fcil-logo {
-      height: 32px;
+      height: 65px; /* Enlarged for clear readability */
       width: auto;
       display: block;
-      /* Ensures crisp rendering for logo graphics */
       object-fit: contain;
     }
 
@@ -253,7 +237,14 @@
       header { padding: 1rem; }
       .section-card { padding: 1.25rem; }
       .source-grid { grid-template-columns: 1fr; }
-      .frequency-box { flex-direction: column; align-items: flex-start; }
+      .created-by {
+        flex-direction: column;
+        padding: 1rem 1.25rem;
+        gap: 0.75rem;
+      }
+      .fcil-logo {
+        height: 50px;
+      }
     }
   </style>
 </head>
@@ -284,9 +275,8 @@
         This is an open-source project. We do not and have no intention of monetizing it. If you have an suggestion or just want to chat, hit us up on <a class="content-link" href="https://www.linkedin.com/company/the-financial-crime-intelligence-lab" target="_blank" rel="noopener">LinkedIn</a> or <a class="content-link" href="https://fcil.substack.com/" target="_blank" rel="noopener">Substack</a>.
       </p>
 
-      <div class="frequency-box">
-        <span class="frequency-badge">Update Frequency</span>
-        <p class="frequency-text">Feeds are automatically polled and updated every 30 minutes.</p>
+      <div class="frequency-badge-inline">
+        ⚡ Feeds automatically update every 30 minutes
       </div>
     </section>
 
