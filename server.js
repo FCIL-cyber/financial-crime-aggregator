@@ -54,13 +54,11 @@ const FEED_URLS = [
   'https://transparency.ie/taxonomy/term/5/feed',
   'https://fcil.substack.com/feed',
   'https://taxjustice.net/feed/',
-  'https://www.pogo.org/feed',
   'https://corporateeurope.org/en/rss.xml',
   'https://www.federalregister.gov/api/v1/documents.rss?conditions%5Bagencies%5D%5B%5D=financial-crimes-enforcement-network',
   'https://www.gov.uk/government/organisations/serious-fraud-office.atom',
   'https://www.gov.uk/government/organisations/national-crime-agency.atom',
   'https://www.sec.gov/rss/news/press.xml',
-  'https://www.justice.gov/rss/opa/press-releases.xml',
   // 🚀 NEW FEEDS ADDED
   'https://news.google.com/rss/search?q=site:justice.gov/news/press-releases&hl=en-US&gl=US&ceid=US:en',
   'https://www.eppo.europa.eu/node/2/rss_en',
