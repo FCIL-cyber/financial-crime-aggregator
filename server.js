@@ -60,7 +60,7 @@ const FEED_URLS = [
   'https://www.gov.uk/government/organisations/national-crime-agency.atom',
   'https://www.sec.gov/rss/news/press.xml',
   // 🚀 NEW FEEDS ADDED
-  'https://news.google.com/rss/search?q=site:justice.gov%2Fnews%2Fpress-releases&hl=en-US&gl=US&ceid=US:en',
+  'https://news.google.com/rss/search?q=site:justice.gov+press+releases&hl=en-US&gl=US&ceid=US:en',
   'https://www.eppo.europa.eu/node/2/rss_en',
   'https://www.europol.europa.eu/cms/api/rss/news',
   'https://news.google.com/rss/search?q=site:investigate-europe.eu&hl=en-US&gl=US&ceid=US:en',
