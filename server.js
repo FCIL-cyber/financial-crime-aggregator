@@ -46,7 +46,7 @@ async function initDatabase() {
 }
 initDatabase();
 
-// Your exact requested feed list with SEC included
+// Master Feed List (Existing + 6 New Sources)
 const FEED_URLS = [
   'https://www.occrp.org/en/feed',
   'https://www.icij.org/feed/',
@@ -60,7 +60,14 @@ const FEED_URLS = [
   'https://www.gov.uk/government/organisations/serious-fraud-office.atom',
   'https://www.gov.uk/government/organisations/national-crime-agency.atom',
   'https://www.sec.gov/rss/news/press.xml',
-  'https://www.justice.gov/rss/opa/press-releases.xml'
+  'https://www.justice.gov/rss/opa/press-releases.xml',
+  // 🚀 NEW FEEDS ADDED
+  'https://news.google.com/rss/search?q=site:justice.gov/news/press-releases&hl=en-US&gl=US&ceid=US:en',
+  'https://www.eppo.europa.eu/node/2/rss_en',
+  'https://www.europol.europa.eu/cms/api/rss/news',
+  'https://news.google.com/rss/search?q=site:investigate-europe.eu&hl=en-US&gl=US&ceid=US:en',
+  'https://www.eurojust.europa.eu/rss/publications.xml',
+  'https://www.eurojust.europa.eu/rss/press-releases.xml'
 ];
 
 const FALLBACK_IMAGES = [
@@ -135,19 +142,30 @@ function getCardSource(item, feedTitle, articleLink) {
       'justice': 'DOJ (US)',
       'taxjustice': 'TAX JUSTICE NET',
       'pogo': 'POGO',
-      'corporateeurope': 'CORP EUROPE OBS'
+      'corporateeurope': 'CORP EUROPE OBS',
+      'eppo': 'EPPO (EU)',
+      'europol': 'EUROPOL',
+      'investigate-europe': 'INVESTIGATE EUROPE',
+      'eurojust': 'EUROJUST'
     };
 
-    if (brandMap[brand.toLowerCase()]) return brandMap[brand.toLowerCase()];
+    if (brand !== 'google' && brandMap[brand.toLowerCase()]) return brandMap[brand.toLowerCase()];
 
-    if (item.source && typeof item.source === 'string') return item.source.toUpperCase();
-    if (brand && brand.length > 2) return brand.toUpperCase();
+    // Google search overrides
+    if (brand === 'google' || host.includes('google')) {
+      const titleLower = (feedTitle || '').toLowerCase();
+      if (titleLower.includes('investigate-europe')) return 'INVESTIGATE EUROPE';
+      if (titleLower.includes('justice.gov') || titleLower.includes('doj')) return 'DOJ (US)';
+      if (item.source && typeof item.source === 'string') return item.source.toUpperCase();
+    }
+
+    if (brand && brand !== 'google' && brand.length > 2) return brand.toUpperCase();
   } catch (e) {}
 
   return feedTitle ? feedTitle.replace(/"|-|Google|News|RSS|Feed|Latest/gi, '').trim().toUpperCase() : 'INTELLIGENCE';
 }
 
-// Ingestion Worker with custom SEC handler
+// Ingestion Worker
 async function runIngestionWorker() {
   console.log('[CRON] Scraping RSS feeds...');
 
@@ -158,12 +176,12 @@ async function runIngestionWorker() {
     try {
       let feed;
 
-      // Handle SEC specifically with mandated User-Agent format
-      if (url.includes('sec.gov')) {
+      // Custom headers for strict agency anti-bot checks (SEC, EPPO, Europol, Eurojust)
+      if (url.includes('sec.gov') || url.includes('eppo.europa.eu') || url.includes('europol.europa.eu') || url.includes('eurojust.europa.eu')) {
         const { data: xmlData } = await axios.get(url, {
           headers: {
             'User-Agent': 'FinancialCrimeDashboard admin@dashboardapp.com',
-            'Accept': 'application/xml, text/xml, */*'
+            'Accept': 'application/xml, text/xml, application/rss+xml, */*'
           },
           timeout: 10000
         });
@@ -185,12 +203,14 @@ async function runIngestionWorker() {
 
         let image = getFeedImage(item, idx);
 
-        if (!image && link && !url.includes('sec.gov')) {
+        const isGoogle = link.includes('news.google.com') || (image && (image.includes('googleusercontent.com') || image.includes('ggpht.com')));
+
+        if (!isGoogle && !image && link && !url.includes('sec.gov')) {
           const ogImg = await fetchOgImage(link);
           if (ogImg) image = ogImg;
         }
 
-        if (!image) {
+        if (isGoogle || !image) {
           image = getTopicImage(title, idx);
         }
 
