@@ -124,45 +124,44 @@ async function fetchOgImage(url) {
 function getCardSource(item, feedTitle, articleLink) {
   try {
     const parsedUrl = new URL(articleLink);
-    let host = parsedUrl.hostname.replace(/^www\./, '');
-    let parts = host.split('.');
-    let brand = parts.length > 2 ? parts[parts.length - 2] : parts[0];
+    const host = parsedUrl.hostname.toLowerCase();
 
-    const brandMap = {
-      'occrp': 'OCCRP',
-      'icij': 'ICIJ',
-      'transparency': 'TRANSPARENCY INT',
-      'substack': 'FCIL SUBSTACK',
-      'bellingcat': 'BELLINGCAT',
-      'federalregister': 'FINCEN (FED REG)',
-      'gov': 'GOV.UK',
-      'sec': 'SEC (US)',
-      'justice': 'DOJ (US)',
-      'taxjustice': 'TAX JUSTICE NET',
-      'pogo': 'POGO',
-      'corporateeurope': 'CORP EUROPE OBS',
-      'eppo': 'EPPO (EU)',
-      'europol': 'EUROPOL',
-      'investigate-europe': 'INVESTIGATE EUROPE',
-      'eurojust': 'EUROJUST'
-    };
+    // 1. Direct match by hostname keywords (handles subdomains & multi-part TLDs like .europa.eu)
+    if (host.includes('europol')) return 'EUROPOL';
+    if (host.includes('eppo')) return 'EPPO (EU)';
+    if (host.includes('eurojust')) return 'EUROJUST';
+    if (host.includes('occrp')) return 'OCCRP';
+    if (host.includes('icij')) return 'ICIJ';
+    if (host.includes('bellingcat')) return 'BELLINGCAT';
+    if (host.includes('transparency')) return 'TRANSPARENCY INT';
+    if (host.includes('substack')) return 'FCIL SUBSTACK';
+    if (host.includes('federalregister')) return 'FINCEN (FED REG)';
+    if (host.includes('sec.gov')) return 'SEC (US)';
+    if (host.includes('justice.gov')) return 'DOJ (US)';
+    if (host.includes('taxjustice')) return 'TAX JUSTICE NET';
+    if (host.includes('pogo.org')) return 'POGO';
+    if (host.includes('corporateeurope')) return 'CORP EUROPE OBS';
+    if (host.includes('investigate-europe')) return 'INVESTIGATE EUROPE';
+    if (host.includes('gov.uk')) return 'GOV.UK';
 
-    if (brand !== 'google' && brandMap[brand.toLowerCase()]) return brandMap[brand.toLowerCase()];
-
-    // Google search overrides
-    if (brand === 'google' || host.includes('google')) {
+    // 2. Google Search RSS overrides
+    if (host.includes('google')) {
       const titleLower = (feedTitle || '').toLowerCase();
       if (titleLower.includes('investigate-europe')) return 'INVESTIGATE EUROPE';
       if (titleLower.includes('justice.gov') || titleLower.includes('doj')) return 'DOJ (US)';
       if (item.source && typeof item.source === 'string') return item.source.toUpperCase();
     }
 
-    if (brand && brand !== 'google' && brand.length > 2) return brand.toUpperCase();
+    // 3. General Domain Fallback
+    let cleanHost = host.replace(/^www\./, '');
+    let parts = cleanHost.split('.');
+    let brand = parts.length > 2 ? parts[parts.length - 2] : parts[0];
+    if (brand && brand.length > 2) return brand.toUpperCase();
+
   } catch (e) {}
 
   return feedTitle ? feedTitle.replace(/"|-|Google|News|RSS|Feed|Latest/gi, '').trim().toUpperCase() : 'INTELLIGENCE';
 }
-
 // Ingestion Worker
 async function runIngestionWorker() {
   console.log('[CRON] Scraping RSS feeds...');
