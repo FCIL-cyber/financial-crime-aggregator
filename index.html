@@ -308,17 +308,138 @@
 </head>
 <body>
 
-  <header>
-    <div class="header-container">
-      <a href="index.html" class="brand-box">
-        <h1>Financial Crime Intelligence</h1>
-      </a>
-      <nav>
-        <a href="index.html" class="nav-btn active">Live Feed</a>
-        <a href="about.html" class="nav-btn">About the project</a>
-      </nav>
-    </div>
-  </header>
+ header {
+    background-color: var(--bg-color);
+    border-bottom: 3px solid var(--border-color);
+    padding: 1.25rem 2rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .header-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+
+  /* Bracketed Brand Badge */
+  .brand-logo-box {
+    background-color: #ffffff;
+    border: 3px solid var(--border-color);
+    box-shadow: var(--shadow-hard);
+    padding: 0.6rem 0.9rem;
+    text-decoration: none;
+    color: var(--text-main);
+    display: inline-flex;
+    flex-direction: column;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    line-height: 1.05;
+    text-transform: uppercase;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+
+  .brand-logo-box:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #000000;
+  }
+
+  .brand-line {
+    display: flex;
+    align-items: flex-start;
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-bracket {
+    font-size: 1.45rem;
+    line-height: 0.85;
+  }
+
+  .brand-bracket.top {
+    margin-right: 2px;
+  }
+
+  .brand-indent {
+    padding-left: 14px;
+  }
+
+  .brand-bottom-line {
+    display: flex;
+    align-items: baseline;
+    font-size: 1.35rem;
+    letter-spacing: -0.02em;
+  }
+
+  .brand-domain {
+    font-size: 0.85rem;
+    font-weight: 800;
+    margin-left: 1px;
+  }
+
+  /* Navigation Styling */
+  nav {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .nav-btn {
+    background-color: #ffffff;
+    color: #000000;
+    border: 3px solid var(--border-color);
+    box-shadow: 3px 3px 0px #000;
+    padding: 0.6rem 1.1rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.1s ease;
+  }
+
+  .nav-btn:hover, .nav-btn.active {
+    background-color: var(--accent-orange);
+    color: #ffffff;
+  }
+
+  @media (max-width: 640px) {
+    header {
+      padding: 1rem;
+    }
+    .brand-line, .brand-bottom-line {
+      font-size: 1.15rem;
+    }
+    .brand-bracket {
+      font-size: 1.25rem;
+    }
+    .brand-domain {
+      font-size: 0.75rem;
+    }
+  }
+</style>
+
+<header>
+  <div class="header-container">
+    <a href="index.html" class="brand-logo-box">
+      <div class="brand-line">
+        <span class="brand-bracket top">[</span>CRIME
+      </div>
+      <div class="brand-line brand-indent">
+        IS
+      </div>
+      <div class="brand-bottom-line brand-indent">
+        LEGAL<span class="brand-bracket">]</span><span class="brand-domain">.EU</span>
+      </div>
+    </a>
+    <nav>
+      <a href="index.html" class="nav-btn active">Live Feed</a>
+      <a href="about.html" class="nav-btn">About the project</a>
+    </nav>
+  </div>
+</header>
 
   <main>
     <div id="news-container" class="grid-container">
