@@ -60,7 +60,7 @@
       gap: 1.25rem;
     }
 
-    /* Bracketed Brand Badge */
+    /* Static Brand Logo Badge (Hover effect removed) */
     .brand-logo-box {
       background-color: #ffffff;
       border: 3px solid var(--border-color);
@@ -74,12 +74,6 @@
       font-weight: 700;
       line-height: 1.05;
       text-transform: uppercase;
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
-    }
-
-    .brand-logo-box:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0px #000000;
     }
 
     .brand-line {
@@ -115,7 +109,39 @@
       margin-left: 1px;
     }
 
-    /* Navigation Styling */
+    /* Navigation & Header Right Section */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* Yellow Update Note Badge */
+    .update-badge {
+      background-color: var(--accent-yellow);
+      color: #000000;
+      border: 2px solid var(--border-color);
+      box-shadow: 2px 2px 0px #000;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.5rem 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .update-badge::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: #000000;
+      border-radius: 50%;
+    }
+
     nav {
       display: flex;
       gap: 0.75rem;
@@ -228,7 +254,6 @@
       transition: background-color 0.1s ease;
     }
 
-    /* Yellow Hover Highlight */
     .card-title a:hover {
       background-color: var(--accent-yellow);
       padding: 0 0.2rem;
@@ -348,6 +373,10 @@
       .brand-domain {
         font-size: 0.75rem;
       }
+      .header-right {
+        width: 100%;
+        justify-content: space-between;
+      }
     }
   </style>
 </head>
@@ -366,16 +395,19 @@
         LEGAL<span class="brand-bracket">]</span><span class="brand-domain">.EU</span>
       </div>
     </a>
-    <nav>
-      <a href="index.html" class="nav-btn active">Live Feed</a>
-      <a href="about.html" class="nav-btn">About the project</a>
-    </nav>
+    
+    <div class="header-right">
+      <div class="update-badge">Feeds update every 15 minutes</div>
+      <nav>
+        <a href="index.html" class="nav-btn active">Live Feed</a>
+        <a href="about.html" class="nav-btn">About the project</a>
+      </nav>
+    </div>
   </div>
 </header>
 
   <main>
     <div id="news-container" class="grid-container">
-      <!-- Initial HTML state uses 12 skeleton cards for zero-flicker rendering -->
       <script>
         document.write(Array(12).fill(`
           <article class="news-card skeleton-card">
@@ -410,7 +442,6 @@
       const container = document.getElementById('news-container');
       if (!container) return;
 
-      // Maintain skeleton placeholders during load instead of collapsing to text
       container.innerHTML = Array(12).fill(`
         <article class="news-card skeleton-card">
           <div class="card-image-wrapper skeleton-box"></div>
