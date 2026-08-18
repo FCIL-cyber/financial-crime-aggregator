@@ -196,6 +196,32 @@
       color: var(--accent-orange);
     }
 
+    /* Yellow Update Badge */
+    .update-badge-block {
+      background-color: var(--accent-yellow);
+      border: 2px solid var(--border-color);
+      box-shadow: 2px 2px 0px #000000;
+      padding: 0.6rem 0.85rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      margin-top: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .update-badge-block::before {
+      content: '';
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: #000000;
+      border-radius: 50%;
+    }
+
     /* Sources List */
     .source-category {
       font-family: 'Space Grotesk', sans-serif;
@@ -327,6 +353,7 @@
     <p>
       Financial Crime Intelligence aggregates real-time data on financial crime and its prevention, normalizing fragmented RSS and Atom feeds into a single unified stream.
     </p>
+    <div class="update-badge-block">Feeds update every 15 minutes</div>
     <p>
       Built for like-minded professionals who want to stay informed without getting flooded with noise.
     </p>
@@ -381,11 +408,11 @@
     <div class="source-category">Investigative Journalism & Non-Profits</div>
     <div class="source-grid">
       <div class="source-item">
-        <div class="source-name">Organized Crime and Corruption Reporting Project</div>
+        <div class="source-name">Organized Crime and Corruption Reporting Project (OCCRP)</div>
         <a class="source-url" href="https://www.occrp.org" target="_blank" rel="noopener">occrp.org</a>
       </div>
       <div class="source-item">
-        <div class="source-name">International Consortium of Investigative Journalists</div>
+        <div class="source-name">International Consortium of Investigative Journalists (ICIJ)</div>
         <a class="source-url" href="https://www.icij.org" target="_blank" rel="noopener">icij.org</a>
       </div>
       <div class="source-item">
