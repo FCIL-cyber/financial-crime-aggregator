@@ -60,53 +60,69 @@
       gap: 1.25rem;
     }
 
-    /* Static Brand Logo Badge (Hover effect removed) */
+   /* Header Left Grouping */
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    /* Single-line Logo Badge with Pop-out Hover Effect */
     .brand-logo-box {
       background-color: #ffffff;
       border: 3px solid var(--border-color);
-      box-shadow: var(--shadow-hard);
-      padding: 0.6rem 0.9rem;
+      box-shadow: var(--shadow-hard-lg);
+      padding: 0.6rem 1rem;
       text-decoration: none;
       color: var(--text-main);
       display: inline-flex;
-      flex-direction: column;
-      font-family: 'Space Grotesk', sans-serif;
-      font-weight: 700;
-      line-height: 1.05;
-      text-transform: uppercase;
-    }
-
-    .brand-line {
-      display: flex;
-      align-items: flex-start;
-      font-size: 1.35rem;
-      letter-spacing: -0.02em;
-    }
-
-    .brand-bracket {
-      font-size: 1.45rem;
-      line-height: 0.85;
-    }
-
-    .brand-bracket.top {
-      margin-right: 2px;
-    }
-
-    .brand-indent {
-      padding-left: 14px;
-    }
-
-    .brand-bottom-line {
-      display: flex;
       align-items: baseline;
-      font-size: 1.35rem;
-      letter-spacing: -0.02em;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: -0.01em;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .brand-logo-box:hover {
+      transform: translate(-2px, -2px);
+      box-shadow: 8px 8px 0px #000000;
+    }
+
+    .brand-logo-text {
+      display: inline-block;
     }
 
     .brand-domain {
       font-size: 0.85rem;
       font-weight: 800;
-      margin-left: 1px;
+      margin-left: 2px;
+      position: relative;
+      top: -2px;
+    }
+
+    /* Vertical Separator and Tagline */
+    .header-tagline-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header-divider {
+      width: 2px;
+      height: 28px;
+      background-color: var(--border-color);
+    }
+
+    .header-tagline {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-main);
     }
 
     /* Navigation & Header Right Section */
@@ -115,31 +131,6 @@
       align-items: center;
       gap: 1rem;
       flex-wrap: wrap;
-    }
-
-    /* Yellow Update Note Badge */
-    .update-badge {
-      background-color: var(--accent-yellow);
-      color: #000000;
-      border: 2px solid var(--border-color);
-      box-shadow: 2px 2px 0px #000;
-      font-size: 0.75rem;
-      font-weight: 800;
-      padding: 0.5rem 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.02em;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .update-badge::before {
-      content: '';
-      display: inline-block;
-      width: 8px;
-      height: 8px;
-      background-color: #000000;
-      border-radius: 50%;
     }
 
     nav {
@@ -384,20 +375,17 @@
 
 <header>
   <div class="header-container">
-    <a href="index.html" class="brand-logo-box">
-      <div class="brand-line">
-        <span class="brand-bracket top">[</span>CRIME
+    <div class="header-left">
+      <a href="index.html" class="brand-logo-box">
+        <span class="brand-logo-text">[CRIME IS LEGAL]</span><span class="brand-domain">.EU</span>
+      </a>
+      <div class="header-tagline-container">
+        <div class="header-divider"></div>
+        <span class="header-tagline">FINANCIAL CRIME NEWS AGGREGATOR</span>
       </div>
-      <div class="brand-line brand-indent">
-        IS
-      </div>
-      <div class="brand-bottom-line brand-indent">
-        LEGAL<span class="brand-bracket">]</span><span class="brand-domain">.EU</span>
-      </div>
-    </a>
+    </div>
     
     <div class="header-right">
-      <div class="update-badge">Feeds update every 15 minutes</div>
       <nav>
         <a href="index.html" class="nav-btn active">Live Feed</a>
         <a href="about.html" class="nav-btn">About the project</a>
