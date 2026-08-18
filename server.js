@@ -75,9 +75,16 @@ const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80'
 ];
 
-function getTopicImage(title, index) {
+function getTopicImage(title, index, source = '') {
   const t = (title || '').toLowerCase();
+  const s = (source || '').toLowerCase();
 
+  // 1. Direct match for DOJ (US) articles
+  if (s === 'doj (us)' || t.includes('department of justice') || t.includes('doj')) {
+    return 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Seal_of_the_United_States_Department_of_Justice.svg/960px-Seal_of_the_United_States_Department_of_Justice.svg.png';
+  }
+
+  // 2. Generic topic match for non-DOJ feeds without images
   if (t.includes('court') || t.includes('law') || t.includes('judge') || t.includes('prosecut') || t.includes('trial') || t.includes('clash')) {
     return 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80';
   }
@@ -220,7 +227,7 @@ async function runIngestionWorker() {
         }
 
         if (isGoogle || !image) {
-          image = getTopicImage(title, idx);
+          image = getTopicImage(title, idx, source);
         }
 
         const insertQuery = `
