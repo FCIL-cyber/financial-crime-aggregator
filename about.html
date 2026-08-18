@@ -58,62 +58,79 @@
       gap: 1.25rem;
     }
 
-    /* Bracketed Brand Badge */
+    /* Header Left Grouping */
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+    }
+
+    /* Single-line Logo Badge with Pop-out Hover Effect */
     .brand-logo-box {
       background-color: #ffffff;
       border: 3px solid var(--border-color);
-      box-shadow: var(--shadow-hard);
-      padding: 0.6rem 0.9rem;
+      box-shadow: var(--shadow-hard-lg);
+      padding: 0.6rem 1rem;
       text-decoration: none;
       color: var(--text-main);
       display: inline-flex;
-      flex-direction: column;
+      align-items: baseline;
       font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.25rem;
       font-weight: 700;
-      line-height: 1.05;
       text-transform: uppercase;
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
+      letter-spacing: -0.01em;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
     .brand-logo-box:hover {
       transform: translate(-2px, -2px);
-      box-shadow: 6px 6px 0px #000000;
+      box-shadow: 8px 8px 0px #000000;
     }
 
-    .brand-line {
-      display: flex;
-      align-items: flex-start;
-      font-size: 1.35rem;
-      letter-spacing: -0.02em;
-    }
-
-    .brand-bracket {
-      font-size: 1.45rem;
-      line-height: 0.85;
-    }
-
-    .brand-bracket.top {
-      margin-right: 2px;
-    }
-
-    .brand-indent {
-      padding-left: 14px;
-    }
-
-    .brand-bottom-line {
-      display: flex;
-      align-items: baseline;
-      font-size: 1.35rem;
-      letter-spacing: -0.02em;
+    .brand-logo-text {
+      display: inline-block;
     }
 
     .brand-domain {
       font-size: 0.85rem;
       font-weight: 800;
-      margin-left: 1px;
+      margin-left: 2px;
+      position: relative;
+      top: -2px;
+    }
+
+    /* Vertical Separator and Tagline */
+    .header-tagline-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .header-divider {
+      width: 2px;
+      height: 28px;
+      background-color: var(--border-color);
+    }
+
+    .header-tagline {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-main);
     }
 
     /* Navigation Styling */
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
     nav {
       display: flex;
       gap: 0.75rem;
@@ -261,14 +278,8 @@
       header {
         padding: 1rem;
       }
-      .brand-line, .brand-bottom-line {
-        font-size: 1.15rem;
-      }
-      .brand-bracket {
-        font-size: 1.25rem;
-      }
-      .brand-domain {
-        font-size: 0.75rem;
+      .header-divider {
+        display: none;
       }
       .section-card {
         padding: 1.25rem;
@@ -291,21 +302,22 @@
 
 <header>
   <div class="header-container">
-    <a href="index.html" class="brand-logo-box">
-      <div class="brand-line">
-        <span class="brand-bracket top">[</span>CRIME
+    <div class="header-left">
+      <a href="index.html" class="brand-logo-box">
+        <span class="brand-logo-text">[CRIME IS LEGAL]</span><span class="brand-domain">.EU</span>
+      </a>
+      <div class="header-tagline-container">
+        <div class="header-divider"></div>
+        <span class="header-tagline">FINANCIAL CRIME NEWS AGGREGATOR</span>
       </div>
-      <div class="brand-line brand-indent">
-        IS
-      </div>
-      <div class="brand-bottom-line brand-indent">
-        LEGAL<span class="brand-bracket">]</span><span class="brand-domain">.EU</span>
-      </div>
-    </a>
-    <nav>
-      <a href="index.html" class="nav-btn">Live Feed</a>
-      <a href="about.html" class="nav-btn active">About the project</a>
-    </nav>
+    </div>
+    
+    <div class="header-right">
+      <nav>
+        <a href="index.html" class="nav-btn">Live Feed</a>
+        <a href="about.html" class="nav-btn active">About the project</a>
+      </nav>
+    </div>
   </div>
 </header>
 
@@ -319,7 +331,7 @@
       Built for like-minded professionals who want to stay informed without getting flooded with noise.
     </p>
     <p>
-      This is a non-commercial, open-source project. If you have suggestions or want to connect, reach out to us on <a class="content-link" href="https://www.linkedin.com/company/the-financial-crime-intelligence-lab" target="_blank" rel="noopener">LinkedIn</a> or <a class="content-link" href="https://fcil.substack.com/" target="_blank" rel="noopener">Substack</a>.
+      This is a non-commercial, open-source project available on <a class="content-link" href="https://github.com/FCIL-cyber/financial-crime-aggregator" target="_blank" rel="noopener">GitHub</a>. If you have suggestions or want to connect, reach out to us on <a class="content-link" href="https://www.linkedin.com/company/the-financial-crime-intelligence-lab" target="_blank" rel="noopener">LinkedIn</a> or <a class="content-link" href="https://fcil.substack.com/" target="_blank" rel="noopener">Substack</a>.
     </p>
   </section>
 
