@@ -7,6 +7,12 @@ const cron = require('node-cron');
 const { Pool } = require('pg');
 
 const app = express();
+
+// --- MIDDLEWARE SETUP (REQUIRED FOR JSON BODY PARSING) ---
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 const parser = new Parser({
   timeout: 10000,
   headers: {
@@ -23,7 +29,6 @@ const verifyAdmin = (req, res, next) => {
   next();
 };
 
-app.use(cors());
 const PORT = process.env.PORT || 3000;
 
 // Connect to Supabase
@@ -54,7 +59,7 @@ async function initDatabase() {
 }
 initDatabase();
 
-// Master Feed List (Existing + 6 New Sources)
+// Master Feed List
 const FEED_URLS = [
   'https://www.occrp.org/en/feed',
   'https://www.icij.org/feed/',
@@ -67,7 +72,6 @@ const FEED_URLS = [
   'https://www.gov.uk/government/organisations/serious-fraud-office.atom',
   'https://www.gov.uk/government/organisations/national-crime-agency.atom',
   'https://www.sec.gov/rss/news/press.xml',
-  // Added on 17-08-2026
   'https://news.google.com/rss/search?q=site:justice.gov+press+releases&hl=en-US&gl=US&ceid=US:en',
   'https://www.eppo.europa.eu/node/2/rss_en',
   'https://www.europol.europa.eu/cms/api/rss/news',
@@ -87,12 +91,10 @@ function getTopicImage(title, index, source = '') {
   const t = (title || '').toLowerCase();
   const s = (source || '').toLowerCase();
 
-  // 1. Direct match for DOJ (US) articles
   if (s === 'doj (us)' || t.includes('department of justice') || t.includes('doj')) {
     return 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Seal_of_the_United_States_Department_of_Justice.svg/960px-Seal_of_the_United_States_Department_of_Justice.svg.png';
   }
 
-  // 2. Generic topic match for non-DOJ feeds without images
   if (t.includes('court') || t.includes('law') || t.includes('judge') || t.includes('prosecut') || t.includes('trial') || t.includes('clash')) {
     return 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80';
   }
@@ -141,7 +143,6 @@ function getCardSource(item, feedTitle, articleLink) {
     const parsedUrl = new URL(articleLink);
     const host = parsedUrl.hostname.toLowerCase();
 
-    // 1. Direct match by hostname keywords (handles subdomains & multi-part TLDs like .europa.eu)
     if (host.includes('europol')) return 'EUROPOL';
     if (host.includes('eppo')) return 'EPPO (EU)';
     if (host.includes('eurojust')) return 'EUROJUST';
@@ -159,7 +160,6 @@ function getCardSource(item, feedTitle, articleLink) {
     if (host.includes('investigate-europe')) return 'INVESTIGATE EUROPE';
     if (host.includes('gov.uk')) return 'GOV.UK';
 
-    // 2. Google Search RSS overrides
     if (host.includes('google')) {
       const titleLower = (feedTitle || '').toLowerCase();
       if (titleLower.includes('investigate-europe')) return 'INVESTIGATE EUROPE';
@@ -167,7 +167,6 @@ function getCardSource(item, feedTitle, articleLink) {
       if (item.source && typeof item.source === 'string') return item.source.toUpperCase();
     }
 
-    // 3. General Domain Fallback
     let cleanHost = host.replace(/^www\./, '');
     let parts = cleanHost.split('.');
     let brand = parts.length > 2 ? parts[parts.length - 2] : parts[0];
@@ -177,6 +176,7 @@ function getCardSource(item, feedTitle, articleLink) {
 
   return feedTitle ? feedTitle.replace(/"|-|Google|News|RSS|Feed|Latest/gi, '').trim().toUpperCase() : 'INTELLIGENCE';
 }
+
 // Ingestion Worker
 async function runIngestionWorker() {
   console.log('[CRON] Scraping RSS feeds...');
@@ -188,7 +188,6 @@ async function runIngestionWorker() {
     try {
       let feed;
 
-      // Custom headers for strict agency anti-bot checks (SEC, EPPO, Europol, Eurojust)
       if (url.includes('sec.gov') || url.includes('eppo.europa.eu') || url.includes('europol.europa.eu') || url.includes('eurojust.europa.eu')) {
         const { data: xmlData } = await axios.get(url, {
           headers: {
@@ -213,7 +212,6 @@ async function runIngestionWorker() {
         const title = item.title || 'Untitled Article';
         const source = getCardSource(item, feed.title, link);
 
-        // 🎯 KEYWORD FILTER: Filter DOJ articles to keep only financial crime cases
         const isDoj = url.includes('justice.gov') || source === 'DOJ (US)';
         if (isDoj) {
           const titleUpper = title.toUpperCase();
@@ -221,7 +219,6 @@ async function runIngestionWorker() {
                              titleUpper.includes('FRAUD') || 
                              titleUpper.includes('LAUNDERING');
 
-          // Skip DOJ articles that don't match our core criteria
           if (!hasKeyword) continue;
         }
 
@@ -330,7 +327,7 @@ app.delete('/api/admin/articles/:id', verifyAdmin, async (req, res) => {
   }
 });
 
-//ADMIN: ADD A CUSTOM CARD
+// ADMIN: ADD A CUSTOM CARD
 app.post('/api/admin/articles', verifyAdmin, async (req, res) => {
   try {
     const { title, link, source, image_url, published_at } = req.body;
