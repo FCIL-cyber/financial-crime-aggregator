@@ -658,29 +658,60 @@
     }
 
     // Modal Submit Handler
-    async function submitAddCard(event) {
-      event.preventDefault();
+   async function submitAddCard(event) {
+  event.preventDefault();
 
-      const key = sessionStorage.getItem('admin_key');
-      if (!key) {
+  const key = sessionStorage.getItem('admin_key');
+  if (!key) {
+    openAuthModal();
+    return;
+  }
+
+  const title = document.getElementById('card-title').value.trim();
+  const link = document.getElementById('card-link').value.trim();
+  const source = document.getElementById('card-source').value.trim() || 'MANUAL BRIEF';
+  const image_url = document.getElementById('card-image').value.trim();
+
+  try {
+    const response = await fetch(ADMIN_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-key': key
+      },
+      // Note: mapping both 'url' and 'link' to cover backend schema requirements
+      body: JSON.stringify({ 
+        title, 
+        url: link, 
+        link: link, 
+        source, 
+        image_url, 
+        image: image_url 
+      })
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      alert('Card added successfully!');
+      closeAddModal();
+      document.getElementById('card-title').value = '';
+      document.getElementById('card-link').value = '';
+      document.getElementById('card-source').value = '';
+      document.getElementById('card-image').value = '';
+      fetchNews(1);
+    } else {
+      alert(`Error: ${data.error || 'Failed to insert custom card'}`);
+      if (response.status === 401) {
+        sessionStorage.removeItem('admin_key');
+        document.body.classList.remove('is-admin');
         openAuthModal();
-        return;
       }
-
-      const title = document.getElementById('card-title').value.trim();
-      const link = document.getElementById('card-link').value.trim();
-      const source = document.getElementById('card-source').value.trim() || 'MANUAL BRIEF';
-      const image_url = document.getElementById('card-image').value.trim();
-
-      try {
-        const response = await fetch(ADMIN_API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-admin-key': key
-          },
-          body: JSON.stringify({ title, link, source, image_url })
-        });
+    }
+  } catch (err) {
+    alert('Failed to add custom card.');
+  }
+}
 
         const data = await response.json();
 
