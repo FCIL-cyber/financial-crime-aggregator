@@ -50,8 +50,11 @@ async function initDatabase() {
         published_at TIMESTAMP WITH TIME ZONE NOT NULL,
         source TEXT NOT NULL,
         image_url TEXT,
+        is_deleted BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
+
+      ALTER TABLE articles ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;
     `);
   } catch (err) {
     console.error('[DB Init Error]:', err.message);
@@ -263,7 +266,7 @@ app.get('/api/news', async (req, res) => {
     const limit = parseInt(req.query.limit) || 12;
     const offset = (page - 1) * limit;
 
-    const countResult = await pool.query('SELECT COUNT(*) FROM articles;');
+    const countResult = await pool.query('SELECT COUNT(*) FROM articles WHERE is_deleted = FALSE;');
     const totalArticles = parseInt(countResult.rows[0].count, 10);
 
     const articlesQuery = `
@@ -275,6 +278,7 @@ app.get('/api/news', async (req, res) => {
         source, 
         image_url as image
       FROM articles
+      WHERE is_deleted = FALSE
       ORDER BY published_at DESC
       LIMIT $1 OFFSET $2;
     `;
@@ -314,13 +318,16 @@ app.get('/api/debug-sources', async (req, res) => {
 app.delete('/api/admin/articles/:id', verifyAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await pool.query('DELETE FROM articles WHERE id = $1 RETURNING *;', [id]);
+    const result = await pool.query(
+      'UPDATE articles SET is_deleted = TRUE WHERE id = $1 RETURNING *;', 
+      [id]
+    );
 
     if (result.rowCount === 0) {
       return res.status(404).json({ error: 'Article not found' });
     }
 
-    res.json({ message: 'Card deleted successfully', deleted: result.rows[0] });
+    res.json({ message: 'Card hidden successfully', deleted: result.rows[0] });
   } catch (err) {
     console.error('[Delete Error]:', err.message);
     res.status(500).json({ error: 'Failed to delete article' });
