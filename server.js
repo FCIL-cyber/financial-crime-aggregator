@@ -15,6 +15,14 @@ const parser = new Parser({
   }
 });
 
+const verifyAdmin = (req, res, next) => {
+  const apiKey = req.headers['x-admin-key'];
+  if (!apiKey || apiKey !== process.env.ADMIN_KEY) {
+    return res.status(401).json({ error: 'Unauthorized: Invalid Admin Key' });
+  }
+  next();
+};
+
 app.use(cors());
 const PORT = process.env.PORT || 3000;
 
@@ -263,6 +271,7 @@ app.get('/api/news', async (req, res) => {
 
     const articlesQuery = `
       SELECT 
+        id, 
         title, 
         link, 
         TO_CHAR(published_at, 'Mon DD, YYYY') as date, 
@@ -301,6 +310,58 @@ app.get('/api/debug-sources', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to inspect sources' });
+  }
+});
+
+// ADMIN: DELETE A CARD BY ID
+app.delete('/api/admin/articles/:id', verifyAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await pool.query('DELETE FROM articles WHERE id = $1 RETURNING *;', [id]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    res.json({ message: 'Card deleted successfully', deleted: result.rows[0] });
+  } catch (err) {
+    console.error('[Delete Error]:', err.message);
+    res.status(500).json({ error: 'Failed to delete article' });
+  }
+});
+
+//ADMIN: ADD A CUSTOM CARD
+app.post('/api/admin/articles', verifyAdmin, async (req, res) => {
+  try {
+    const { title, link, source, image_url, published_at } = req.body;
+
+    if (!title || !link) {
+      return res.status(400).json({ error: 'Title and Link are required' });
+    }
+
+    const guid = `manual-${Date.now()}`;
+    const pubDate = published_at ? new Date(published_at) : new Date();
+
+    const insertQuery = `
+      INSERT INTO articles (guid, title, link, published_at, source, image_url)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING *;
+    `;
+
+    const values = [
+      guid,
+      title,
+      link,
+      pubDate,
+      source || 'MANUAL BRIEF',
+      image_url || 'https://images.unsplash.com/photo-1450133064473-71024230f91b?auto=format&fit=crop&w=600&q=80'
+    ];
+
+    const result = await pool.query(insertQuery, values);
+    res.status(201).json({ message: 'Card created successfully', article: result.rows[0] });
+  } catch (err) {
+    console.error('[Add Card Error]:', err.message);
+    res.status(500).json({ error: 'Failed to insert custom card' });
   }
 });
 
