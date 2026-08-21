@@ -587,7 +587,7 @@
     </div>
   </div>
 
-  <script>
+ <script>
     const API_URL = 'https://financial-crime-intelligence-aggregator.onrender.com/api/news';
     const ADMIN_API_URL = 'https://financial-crime-intelligence-aggregator.onrender.com/api/admin/articles';
     const FALLBACK_IMG = 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?auto=format&fit=crop&w=600&q=80';
@@ -635,7 +635,6 @@
       const inputKey = document.getElementById('admin-secret-key').value.trim();
       if (!inputKey) return;
 
-      // Validate key against backend via a test request
       try {
         const response = await fetch(`${ADMIN_API_URL}/0`, {
           method: 'DELETE',
@@ -647,7 +646,6 @@
           return;
         }
 
-        // If not 401, key is valid (even if article 0 wasn't found - 404 means auth passed)
         sessionStorage.setItem('admin_key', inputKey);
         document.body.classList.add('is-admin');
         closeAuthModal();
@@ -658,60 +656,36 @@
     }
 
     // Modal Submit Handler
-   async function submitAddCard(event) {
-  event.preventDefault();
+    async function submitAddCard(event) {
+      event.preventDefault();
 
-  const key = sessionStorage.getItem('admin_key');
-  if (!key) {
-    openAuthModal();
-    return;
-  }
-
-  const title = document.getElementById('card-title').value.trim();
-  const link = document.getElementById('card-link').value.trim();
-  const source = document.getElementById('card-source').value.trim() || 'MANUAL BRIEF';
-  const image_url = document.getElementById('card-image').value.trim();
-
-  try {
-    const response = await fetch(ADMIN_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-admin-key': key
-      },
-      // Note: mapping both 'url' and 'link' to cover backend schema requirements
-      body: JSON.stringify({ 
-        title, 
-        url: link, 
-        link: link, 
-        source, 
-        image_url, 
-        image: image_url 
-      })
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      alert('Card added successfully!');
-      closeAddModal();
-      document.getElementById('card-title').value = '';
-      document.getElementById('card-link').value = '';
-      document.getElementById('card-source').value = '';
-      document.getElementById('card-image').value = '';
-      fetchNews(1);
-    } else {
-      alert(`Error: ${data.error || 'Failed to insert custom card'}`);
-      if (response.status === 401) {
-        sessionStorage.removeItem('admin_key');
-        document.body.classList.remove('is-admin');
+      const key = sessionStorage.getItem('admin_key');
+      if (!key) {
         openAuthModal();
+        return;
       }
-    }
-  } catch (err) {
-    alert('Failed to add custom card.');
-  }
-}
+
+      const title = document.getElementById('card-title').value.trim();
+      const link = document.getElementById('card-link').value.trim();
+      const source = document.getElementById('card-source').value.trim() || 'MANUAL BRIEF';
+      const image_url = document.getElementById('card-image').value.trim();
+
+      try {
+        const response = await fetch(ADMIN_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': key
+          },
+          body: JSON.stringify({ 
+            title, 
+            url: link, 
+            link: link, 
+            source, 
+            image_url, 
+            image: image_url 
+          })
+        });
 
         const data = await response.json();
 
@@ -724,7 +698,7 @@
           document.getElementById('card-image').value = '';
           fetchNews(1);
         } else {
-          alert(`Error: ${data.error}`);
+          alert(`Error: ${data.error || 'Failed to insert custom card'}`);
           if (response.status === 401) {
             sessionStorage.removeItem('admin_key');
             document.body.classList.remove('is-admin');
