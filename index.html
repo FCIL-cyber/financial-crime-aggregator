@@ -541,6 +541,23 @@
     </div>
   </main>
 
+  <!-- ADMIN AUTH MODAL OVERLAY -->
+  <div id="auth-card-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">Admin Authentication</span>
+        <button class="modal-close" onclick="closeAuthModal()">X</button>
+      </div>
+      <form class="modal-form" onsubmit="submitAdminAuth(event)">
+        <div>
+          <label for="admin-secret-key">Secret Key *</label>
+          <input type="password" id="admin-secret-key" placeholder="Enter admin password..." required />
+        </div>
+        <button type="submit" class="modal-submit-btn">Unlock Admin Panel</button>
+      </form>
+    </div>
+  </div>
+
   <!-- ADD CARD MODAL OVERLAY -->
   <div id="add-card-modal" class="modal-overlay">
     <div class="modal-box">
@@ -580,19 +597,28 @@
     // Check if ?admin=true is in the URL
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('admin') === 'true') {
-      document.body.classList.add('is-admin');
-    }
-
-    function getAdminKey() {
-      let key = sessionStorage.getItem('admin_key');
-      if (!key) {
-        key = prompt("Enter secret Admin Key:");
-        if (key) sessionStorage.setItem('admin_key', key);
+      const storedKey = sessionStorage.getItem('admin_key');
+      if (storedKey) {
+        document.body.classList.add('is-admin');
+      } else {
+        // Open password prompt modal automatically
+        window.addEventListener('DOMContentLoaded', () => {
+          openAuthModal();
+        });
       }
-      return key;
     }
 
     // Modal Control Functions
+    function openAuthModal() {
+      const modal = document.getElementById('auth-card-modal');
+      if (modal) modal.classList.add('active');
+    }
+
+    function closeAuthModal() {
+      const modal = document.getElementById('auth-card-modal');
+      if (modal) modal.classList.remove('active');
+    }
+
     function openAddModal() {
       const modal = document.getElementById('add-card-modal');
       if (modal) modal.classList.add('active');
@@ -603,12 +629,43 @@
       if (modal) modal.classList.remove('active');
     }
 
+    // Submit Auth Key Check
+    async function submitAdminAuth(event) {
+      event.preventDefault();
+      const inputKey = document.getElementById('admin-secret-key').value.trim();
+      if (!inputKey) return;
+
+      // Validate key against backend via a test request
+      try {
+        const response = await fetch(`${ADMIN_API_URL}/0`, {
+          method: 'DELETE',
+          headers: { 'x-admin-key': inputKey }
+        });
+
+        if (response.status === 401) {
+          alert('Invalid Admin Key');
+          return;
+        }
+
+        // If not 401, key is valid (even if article 0 wasn't found - 404 means auth passed)
+        sessionStorage.setItem('admin_key', inputKey);
+        document.body.classList.add('is-admin');
+        closeAuthModal();
+        fetchNews(currentPage);
+      } catch (err) {
+        alert('Authentication failed.');
+      }
+    }
+
     // Modal Submit Handler
     async function submitAddCard(event) {
       event.preventDefault();
 
-      const key = getAdminKey();
-      if (!key) return;
+      const key = sessionStorage.getItem('admin_key');
+      if (!key) {
+        openAuthModal();
+        return;
+      }
 
       const title = document.getElementById('card-title').value.trim();
       const link = document.getElementById('card-link').value.trim();
@@ -630,7 +687,6 @@
         if (response.ok) {
           alert('Card added successfully!');
           closeAddModal();
-          // Reset form fields
           document.getElementById('card-title').value = '';
           document.getElementById('card-link').value = '';
           document.getElementById('card-source').value = '';
@@ -638,7 +694,11 @@
           fetchNews(1);
         } else {
           alert(`Error: ${data.error}`);
-          if (response.status === 401) sessionStorage.removeItem('admin_key');
+          if (response.status === 401) {
+            sessionStorage.removeItem('admin_key');
+            document.body.classList.remove('is-admin');
+            openAuthModal();
+          }
         }
       } catch (err) {
         alert('Failed to add custom card.');
@@ -649,8 +709,11 @@
     async function handleDeleteCard(articleId) {
       if (!confirm(`Are you sure you want to delete article ID #${articleId}?`)) return;
 
-      const key = getAdminKey();
-      if (!key) return;
+      const key = sessionStorage.getItem('admin_key');
+      if (!key) {
+        openAuthModal();
+        return;
+      }
 
       try {
         const response = await fetch(`${ADMIN_API_URL}/${articleId}`, {
@@ -665,7 +728,11 @@
           fetchNews(currentPage);
         } else {
           alert(`Error: ${data.error}`);
-          if (response.status === 401) sessionStorage.removeItem('admin_key');
+          if (response.status === 401) {
+            sessionStorage.removeItem('admin_key');
+            document.body.classList.remove('is-admin');
+            openAuthModal();
+          }
         }
       } catch (err) {
         alert('Failed to delete card.');
