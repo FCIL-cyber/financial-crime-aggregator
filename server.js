@@ -218,10 +218,8 @@ async function runIngestionWorker() {
         const isDoj = url.includes('justice.gov') || source === 'DOJ (US)';
         if (isDoj) {
           const titleUpper = title.toUpperCase();
-          const hasKeyword = titleUpper.includes('$') || 
-                             titleUpper.includes('FRAUD') || 
-                             titleUpper.includes('LAUNDERING');
-
+          const keywords = ['$', 'FRAUD', 'LAUNDERING', 'LAUNDER', 'TAX', 'EVASION', 'BRIBERY', 'CORRUPTION', 'EMBEZZLE', 'EMBEZZLEMENT', 'SANCTION'];
+          const hasKeyword = keywords.some(keyword => titleUpper.includes(keyword));
           if (!hasKeyword) continue;
         }
 
