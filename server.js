@@ -90,12 +90,39 @@ const FALLBACK_IMAGES = [
   'https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80'
 ];
 
+const DOJ_IMAGES = [
+  'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Seal_of_the_United_States_Department_of_Justice.svg/960px-Seal_of_the_United_States_Department_of_Justice.svg.png',
+  'https://upload.wikimedia.org/wikipedia/commons/thumb/0/00/Flag_of_the_United_States_Department_of_Justice.svg/1024px-Flag_of_the_United_States_Department_of_Justice.svg.png',
+  'https://images.pexels.com/photos/9685285/pexels-photo-9685285.jpeg',
+  'https://images.pexels.com/photos/6065255/pexels-photo-6065255.jpeg',
+  'https://images.pexels.com/photos/36060296/pexels-photo-36060296.jpeg',
+  'https://images.pexels.com/photos/17718824/pexels-photo-17718824.jpeg',
+  'https://images.pexels.com/photos/14844457/pexels-photo-14844457.jpeg',
+  'https://images.pexels.com/photos/19054772/pexels-photo-19054772.jpeg',
+  'https://images.pexels.com/photos/6077123/pexels-photo-6077123.jpeg',
+  'https://images.unsplash.com/photo-1688956020469-50f4ecef7489?q=80&w=1094&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1698584200770-3838c3690a27?q=80&w=715&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1688956020469-50f4ecef7489?q=80&w=1094&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1744130400729-c4aee523f490?q=80&w=1632&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1515606378517-3451a4fa2e12?q=80&w=1528&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1514108225820-2b602873ac36?q=80&w=1631&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1443110189928-4448af4a2bc5?q=80&w=993&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1634038971336-9c105b3116e7?q=80&w=1567&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1574607524755-56493b242d28?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1595654378985-92061e59a24d?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1609520612886-51b20d8c9ea5?q=80&w=764&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1597699401213-82936bb3ec7c?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1671469903138-d45f9f6aef89?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1608500071261-4ca08a2a3b68?q=80&w=880&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
+];
+
 function getTopicImage(title, index, source = '') {
   const t = (title || '').toLowerCase();
   const s = (source || '').toLowerCase();
 
   if (s === 'doj (us)' || t.includes('department of justice') || t.includes('doj')) {
-    return 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Seal_of_the_United_States_Department_of_Justice.svg/960px-Seal_of_the_United_States_Department_of_Justice.svg.png';
+    const randomIndex = Math.floor(Math.random() * DOJ_IMAGES.length);
+    return DOJ_IMAGES[randomIndex];
   }
 
   if (t.includes('court') || t.includes('law') || t.includes('judge') || t.includes('prosecut') || t.includes('trial') || t.includes('clash')) {
