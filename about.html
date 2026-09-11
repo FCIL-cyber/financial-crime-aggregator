@@ -518,23 +518,23 @@
 </footer>
 
 <script>
-  async function fetchVisitorCount() {
-    try {
-      const response = await fetch('/api/views');
-      if (!response.ok) throw new Error('Network error');
-      const data = await response.json();
-      
-      const viewsString = String(data.total_views || 0).padStart(6, '0');
-      const counterContainer = document.getElementById('flip-counter');
-      
-      counterContainer.innerHTML = viewsString
-        .split('')
-        .map(digit => `<div class="flip-digit">${digit}</div>`)
-        .join('');
-    } catch (err) {
-      console.error('Failed to load visitor counter:', err);
-    }
+async function fetchVisitorCount() {
+  try {
+    const response = await fetch('https://financial-crime-intelligence-aggregator.onrender.com/api/views');
+    if (!response.ok) throw new Error('Network error');
+    const data = await response.json();
+    
+    const viewsString = String(data.total_views || 0).padStart(6, '0');
+    const counterContainer = document.getElementById('flip-counter');
+    
+    counterContainer.innerHTML = viewsString
+      .split('')
+      .map(digit => `<div class="flip-digit">${digit}</div>`)
+      .join('');
+  } catch (err) {
+    console.error('Failed to load visitor counter:', err);
   }
+}
 
   document.addEventListener('DOMContentLoaded', fetchVisitorCount);
 </script>
