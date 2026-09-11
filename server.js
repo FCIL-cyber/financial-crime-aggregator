@@ -394,4 +394,14 @@ app.post('/api/admin/articles', verifyAdmin, async (req, res) => {
   }
 });
 
+app.get('/api/views', async (req, res) => {
+  try {
+    const { data, error } = await supabase.rpc('increment_views');
+    if (error) throw error;
+    res.json({ total_views: data });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch visitor count' });
+  }
+});
+
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
