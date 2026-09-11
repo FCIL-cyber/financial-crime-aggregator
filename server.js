@@ -6,10 +6,9 @@ const axios = require('axios');
 const cron = require('node-cron');
 const { Pool } = require('pg');
 
-
 const app = express();
 
-// --- MIDDLEWARE SETUP (REQUIRED FOR JSON BODY PARSING) ---
+// --- MIDDLEWARE SETUP ---
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -32,7 +31,7 @@ const verifyAdmin = (req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
-// Connect to Supabase
+// Connect to PostgreSQL (Supabase DB)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.DATABASE_URL && process.env.DATABASE_URL.includes('localhost') 
@@ -42,6 +41,7 @@ const pool = new Pool({
 
 async function initDatabase() {
   try {
+    // 1. Articles table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS articles (
         id SERIAL PRIMARY KEY,
@@ -57,6 +57,19 @@ async function initDatabase() {
 
       ALTER TABLE articles ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;
     `);
+
+    // 2. Site Stats / Visitor Counter Table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS site_stats (
+        id INT PRIMARY KEY DEFAULT 1,
+        total_views BIGINT DEFAULT 0
+      );
+
+      INSERT INTO site_stats (id, total_views) 
+      VALUES (1, 0) 
+      ON CONFLICT (id) DO NOTHING;
+    `);
+    console.log('[DB Init] Tables initialized successfully');
   } catch (err) {
     console.error('[DB Init Error]:', err.message);
   }
@@ -395,34 +408,26 @@ app.post('/api/admin/articles', verifyAdmin, async (req, res) => {
   }
 });
 
+// REAL-TIME VISITOR COUNTER ENDPOINT (PURE SQL)
 app.get('/api/views', async (req, res) => {
   try {
-    // Try calling the stored function first
-    const { data, error } = await supabase.rpc('increment_views');
+    const updateResult = await pool.query(`
+      UPDATE site_stats 
+      SET total_views = total_views + 1 
+      WHERE id = 1 
+      RETURNING total_views;
+    `);
 
-    if (!error && data !== null && data !== undefined) {
-      const views = Array.isArray(data) ? data[0] : data;
-      return res.json({ total_views: Number(views) });
+    if (updateResult.rows.length > 0) {
+      return res.json({ total_views: parseInt(updateResult.rows[0].total_views, 10) });
+    } else {
+      // Emergency fallback if table was missing row 1
+      await pool.query('INSERT INTO site_stats (id, total_views) VALUES (1, 1) ON CONFLICT (id) DO UPDATE SET total_views = site_stats.total_views + 1;');
+      return res.json({ total_views: 1 });
     }
-
-    // Fallback: Query and update directly if RPC is unavailable
-    const { data: current } = await supabase
-      .from('site_stats')
-      .select('total_views')
-      .eq('id', 1)
-      .single();
-
-    const newCount = (Number(current?.total_views) || 0) + 1;
-
-    await supabase
-      .from('site_stats')
-      .update({ total_views: newCount })
-      .eq('id', 1);
-
-    return res.json({ total_views: newCount });
   } catch (err) {
-    console.error('Server execution error:', err);
-    res.status(500).json({ error: err.message || 'Failed to update view count' });
+    console.error('[Views Error]:', err.message);
+    res.status(500).json({ error: 'Failed to update view count' });
   }
 });
 
