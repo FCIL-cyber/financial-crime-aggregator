@@ -397,10 +397,17 @@ app.post('/api/admin/articles', verifyAdmin, async (req, res) => {
 app.get('/api/views', async (req, res) => {
   try {
     const { data, error } = await supabase.rpc('increment_views');
-    if (error) throw error;
-    res.json({ total_views: data });
+    
+    if (error) {
+      console.error('Supabase RPC Error:', error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    // data returns the raw BIGINT from PostgreSQL
+    res.json({ total_views: Number(data) });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch visitor count' });
+    console.error('Server error:', err);
+    res.status(500).json({ error: 'Failed to increment views' });
   }
 });
 
