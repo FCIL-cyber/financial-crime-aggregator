@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crime Is Legal - Financial Crime News Aggregator</title>
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Crime Is Legal - Financial Crime News Aggregator" />
+  <meta property="og:description" content="Real-time financial crime and prevention data aggregator." />
+  <meta property="og:url" content="https://crimeislegal.eu" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://crimeislegal.eu/og-image.jpg" />
+
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect x='5' y='5' width='90' height='90' fill='%23ff5500' stroke='%23000000' stroke-width='12'/><text x='50%' y='72%' font-family='Arial, sans-serif' font-weight='900' font-size='70' fill='%23000000' text-anchor='middle'>C</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,7 +67,6 @@
       gap: 1.25rem;
     }
 
-    /* Header Left Grouping */
     .header-left {
       display: flex;
       align-items: center;
@@ -67,7 +74,6 @@
       flex-wrap: wrap;
     }
 
-    /* Single-line Logo Badge with Pop-out Hover Effect */
     .brand-logo-box {
       background-color: #ffffff;
       border: 3px solid var(--border-color);
@@ -90,10 +96,6 @@
       box-shadow: 8px 8px 0px #000000;
     }
 
-    .brand-logo-text {
-      display: inline-block;
-    }
-
     .brand-domain {
       font-size: 0.85rem;
       font-weight: 800;
@@ -102,7 +104,6 @@
       top: -2px;
     }
 
-    /* Vertical Separator and Tagline */
     .header-tagline-container {
       display: flex;
       align-items: center;
@@ -124,7 +125,6 @@
       color: var(--text-main);
     }
 
-    /* Navigation Styling */
     .header-right {
       display: flex;
       align-items: center;
@@ -156,7 +156,6 @@
       color: #ffffff;
     }
 
-    /* Main Container */
     main {
       max-width: 1000px;
       margin: 0 auto;
@@ -197,7 +196,6 @@
       color: var(--accent-orange);
     }
 
-    /* Yellow Update Badge */
     .update-badge-block {
       background-color: var(--accent-yellow);
       border: 2px solid var(--border-color);
@@ -221,6 +219,56 @@
       height: 8px;
       background-color: #000000;
       border-radius: 50%;
+    }
+
+    /* Flip Visitor Counter Container */
+    .counter-wrapper {
+      margin-top: 1.75rem;
+      background-color: #f9f9f6;
+      border: 3px solid var(--border-color);
+      box-shadow: var(--shadow-hard);
+      padding: 1.25rem;
+      display: inline-block;
+    }
+
+    .counter-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
+    .flip-counter-display {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .flip-digit {
+      background: #000000;
+      color: #ffffff;
+      font-family: 'Space Grotesk', monospace;
+      font-weight: 700;
+      font-size: 1.6rem;
+      padding: 0.35rem 0.65rem;
+      border: 2px solid #000000;
+      box-shadow: 2px 2px 0px #000000;
+      position: relative;
+      line-height: 1;
+      border-radius: 2px;
+    }
+
+    /* Subtle split line across digits to simulate split-flap */
+    .flip-digit::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 100%;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.25);
     }
 
     /* Sources List */
@@ -270,7 +318,7 @@
       color: var(--accent-orange);
     }
 
-    /* Footer / Prominent Attribution */
+    /* Footer */
     footer {
       max-width: 1000px;
       margin: 3rem auto 0 auto;
@@ -304,15 +352,6 @@
     @media (max-width: 640px) {
       header {
         padding: 1rem;
-      }
-      .brand-line, .brand-bottom-line {
-        font-size: 1.15rem;
-      }
-      .brand-bracket {
-        font-size: 1.25rem;
-      }
-      .brand-domain {
-        font-size: 0.75rem;
       }
       .header-right {
         width: 100%;
@@ -371,6 +410,19 @@
     <p>
       This is a non-commercial, open-source project available on <a class="content-link" href="https://github.com/FCIL-cyber/financial-crime-aggregator" target="_blank" rel="noopener">GitHub</a>. If you have suggestions or want to connect, reach out to us on <a class="content-link" href="https://www.linkedin.com/company/the-financial-crime-intelligence-lab" target="_blank" rel="noopener">LinkedIn</a> or <a class="content-link" href="https://fcil.substack.com/" target="_blank" rel="noopener">Substack</a>.
     </p>
+
+    <!-- Flip Visitor Counter Badge -->
+    <div class="counter-wrapper">
+      <div class="counter-label">Total Platform Visits</div>
+      <div class="flip-counter-display" id="flip-counter">
+        <div class="flip-digit">0</div>
+        <div class="flip-digit">0</div>
+        <div class="flip-digit">0</div>
+        <div class="flip-digit">0</div>
+        <div class="flip-digit">0</div>
+        <div class="flip-digit">0</div>
+      </div>
+    </div>
   </section>
 
   <section class="section-card">
@@ -464,6 +516,28 @@
     <img src="fcil-logo.png" alt="Financial Crime Intelligence Lab Logo" class="fcil-logo">
   </div>
 </footer>
+
+<script>
+  async function fetchVisitorCount() {
+    try {
+      const response = await fetch('/api/views');
+      if (!response.ok) throw new Error('Network error');
+      const data = await response.json();
+      
+      const viewsString = String(data.total_views || 0).padStart(6, '0');
+      const counterContainer = document.getElementById('flip-counter');
+      
+      counterContainer.innerHTML = viewsString
+        .split('')
+        .map(digit => `<div class="flip-digit">${digit}</div>`)
+        .join('');
+    } catch (err) {
+      console.error('Failed to load visitor counter:', err);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', fetchVisitorCount);
+</script>
 
 </body>
 </html>
