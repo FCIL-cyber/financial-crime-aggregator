@@ -6,6 +6,7 @@ const axios = require('axios');
 const cron = require('node-cron');
 const { Pool } = require('pg');
 
+
 const app = express();
 
 // --- MIDDLEWARE SETUP (REQUIRED FOR JSON BODY PARSING) ---
@@ -396,18 +397,32 @@ app.post('/api/admin/articles', verifyAdmin, async (req, res) => {
 
 app.get('/api/views', async (req, res) => {
   try {
+    // Try calling the stored function first
     const { data, error } = await supabase.rpc('increment_views');
-    
-    if (error) {
-      console.error('Supabase RPC Error:', error);
-      return res.status(500).json({ error: error.message });
+
+    if (!error && data !== null && data !== undefined) {
+      const views = Array.isArray(data) ? data[0] : data;
+      return res.json({ total_views: Number(views) });
     }
 
-    // data returns the raw BIGINT from PostgreSQL
-    res.json({ total_views: Number(data) });
+    // Fallback: Query and update directly if RPC is unavailable
+    const { data: current } = await supabase
+      .from('site_stats')
+      .select('total_views')
+      .eq('id', 1)
+      .single();
+
+    const newCount = (Number(current?.total_views) || 0) + 1;
+
+    await supabase
+      .from('site_stats')
+      .update({ total_views: newCount })
+      .eq('id', 1);
+
+    return res.json({ total_views: newCount });
   } catch (err) {
-    console.error('Server error:', err);
-    res.status(500).json({ error: 'Failed to increment views' });
+    console.error('Server execution error:', err);
+    res.status(500).json({ error: err.message || 'Failed to update view count' });
   }
 });
 
