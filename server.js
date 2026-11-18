@@ -94,6 +94,7 @@ const FEED_URLS = [
   'https://www.europol.europa.eu/cms/api/rss/news',
   'https://news.google.com/rss/search?q=site:investigate-europe.eu&hl=en-US&gl=US&ceid=US:en',
   'https://www.eurojust.europa.eu/rss/publications.xml',
+  'https://brief.middesk.com/feed',
   'https://www.eurojust.europa.eu/rss/press-releases.xml'
 ];
 
@@ -202,6 +203,7 @@ function getCardSource(item, feedTitle, articleLink) {
     if (host.includes('pogo.org')) return 'POGO';
     if (host.includes('corporateeurope')) return 'CORP EUROPE OBS';
     if (host.includes('investigate-europe')) return 'INVESTIGATE EUROPE';
+    if (host.includes('middesk')) return 'MIDDESK BRIEF';
     if (host.includes('gov.uk')) return 'GOV.UK';
 
     if (host.includes('google')) {
